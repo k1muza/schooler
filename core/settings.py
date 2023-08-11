@@ -84,8 +84,10 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-print(os.environ.get('ENV'))
-if os.environ.get('ENV') == 'test':
+
+
+# if GitHub Actions
+if 'GITHUB_WORKFLOW' in os.environ:
     DATABASES['default']['HOST'] = 'localhost'
 
 
