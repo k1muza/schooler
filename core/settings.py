@@ -84,8 +84,7 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-
-if 'TEST' in os.environ:
+if os.environ.get('ENV') == 'test':
     DATABASES['default']['HOST'] = 'localhost'
 
 
