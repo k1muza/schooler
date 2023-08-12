@@ -1,0 +1,42 @@
+from django.db import models
+from django.db.models import F, Q
+
+
+class Subject(models.Model):
+    name = models.CharField(max_length=255)
+
+
+class Term(models.Model):
+    name = models.CharField(max_length=255)
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=Q(start_date__lte=F('end_date')), 
+                name='start_date_before_end_date'
+            )
+        ]
+
+class Syllabus(models.Model):
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    levels = models.ManyToManyField('class_management.Level')
+    content = models.TextField()
+
+
+class Exercise(models.Model):
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    related_class = models.ForeignKey('class_management.Class', on_delete=models.CASCADE)
+    taken_by = models.ManyToManyField('user_management.Student', through='ExerciseSubmission')
+    prepared_by = models.ForeignKey('user_management.Teacher', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    total_score = models.IntegerField()
+
+
+class ExerciseSubmission(models.Model):
+    student = models.ForeignKey('user_management.Student', on_delete=models.CASCADE)
+    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    submission_date = models.DateTimeField()
+    score = models.IntegerField()
