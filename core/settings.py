@@ -38,6 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'attendance_management',
+    'curriculum_management',
+    'exam_management',
+    'school_management',
+    'user_management',
 ]
 
 MIDDLEWARE = [
@@ -141,3 +146,5 @@ CACHES = {
         }
     }
 }
+
+AUTH_USER_MODEL = 'user_management.User'

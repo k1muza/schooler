@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y libpq-dev
 
 # Copy the requirements file and install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Copy the project files into the container
 COPY . .

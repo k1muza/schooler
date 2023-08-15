@@ -7,6 +7,6 @@ class ClassAttendance(models.Model):
         ABSENT = 'Absent'
 
     student = models.ForeignKey('user_management.Student', on_delete=models.CASCADE)
-    class_instance = models.ForeignKey('school_management.Class', on_delete=models.CASCADE)
+    classroom = models.ForeignKey('school_management.ClassRoom', on_delete=models.CASCADE)
     attendance_date = models.DateField()
     status = models.CharField(max_length=7, choices=Status.choices, default=Status.PRESENT)

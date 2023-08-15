@@ -21,13 +21,13 @@ class Term(models.Model):
 
 class Syllabus(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    levels = models.ManyToManyField('class_management.Level')
+    levels = models.ManyToManyField('school_management.Level')
     content = models.TextField()
 
 
 class Exercise(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    related_class = models.ForeignKey('class_management.Class', on_delete=models.CASCADE)
+    classroom = models.ForeignKey('school_management.ClassRoom', on_delete=models.CASCADE)
     taken_by = models.ManyToManyField('user_management.Student', through='ExerciseSubmission')
     prepared_by = models.ForeignKey('user_management.Teacher', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
