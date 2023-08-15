@@ -1,9 +1,6 @@
 import pytest
-from django.contrib.auth import get_user_model
-from curriculum_management.models import Subject
 
-from user_management.models import Student
-from .factories import ClassRoomFactory, GuardianFactory, StudentFactory, TeacherFactory, UserFactory
+from .factories import StudentFactory, TeacherFactory, UserFactory
 
 
 @pytest.mark.django_db
