@@ -1,9 +1,9 @@
 from factory import Factory, SubFactory, Sequence
 from factory.fuzzy import FuzzyChoice
 from faker import Faker
+from school_management.tests.factories import ClassRoomFactory
 from user_management.models import Teacher
 from ..models import User, Guardian, Student
-from school_management.models import School, Level, ClassRoom
 
 fake = Faker()
 
@@ -21,29 +21,6 @@ class GuardianFactory(Factory):
 
     full_name = fake.name()
     contact_number = fake.phone_number()
-
-
-class SchoolFactory(Factory):
-    class Meta:
-        model = School
-
-    name = fake.company()
-
-
-class LevelFactory(Factory):
-    class Meta:
-        model = Level
-
-    name = fake.word()
-    school = SubFactory(SchoolFactory)
-
-
-class ClassRoomFactory(Factory):
-    class Meta:
-        model = ClassRoom
-
-    name = fake.word()
-    level = SubFactory(LevelFactory)
 
 
 class StudentFactory(Factory):

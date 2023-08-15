@@ -1,7 +1,6 @@
 from factory import Factory, SubFactory, Sequence
 from factory.fuzzy import FuzzyChoice
 from faker import Faker
-from user_management.tests.factories import TeacherFactory
 from ..models import School, Level, ClassRoom
 
 fake = Faker()
@@ -27,5 +26,4 @@ class ClassRoomFactory(Factory):
 
     name = fake.word()
     level = SubFactory(LevelFactory)
-    teacher = TeacherFactory()
-
+    teacher = SubFactory('user_management.tests.factories.TeacherFactory')
