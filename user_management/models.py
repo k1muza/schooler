@@ -12,7 +12,7 @@ class User(AbstractUser, TimeStampedModel):
     gender = models.CharField(max_length=6, choices=Gender.choices, default=Gender.MALE, null=True, blank=True)
 
     def __str__(self):
-        return self.get_full_name()
+        return self.get_full_name() or self.username
 
 
 class UserImage(models.Model):
@@ -24,7 +24,7 @@ class UserImage(models.Model):
         unique_together = ('user', 'is_profile_photo')
 
     def __str__(self):
-        return self.user.get_full_name() + ' - ' + ('Profile Photo' if self.is_profile_photo else f'Image {self.id}')
+        return str(self.image.url) + ' (Profile Photo)' if self.is_profile_photo else str(self.image.url)
 
 
 class UserContact(models.Model):
@@ -38,8 +38,7 @@ class UserContact(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contacts')
 
     def __str__(self):
-        return self.user.get_full_name() + ' - ' + self.contact_type
-
+        return self.contact_type + ' - ' + self.contact
 
 
 class Teacher(TimeStampedModel):
@@ -48,7 +47,7 @@ class Teacher(TimeStampedModel):
     qualifications = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return self.user.get_full_name()
+        return self.user.get_full_name() or self.user.username
 
 
 class Guardian(TimeStampedModel):
@@ -65,18 +64,21 @@ class GuardianContact(models.Model):
         EMAIL = 'email'
         ADDRESS = 'address'
 
-    contact_type = models.CharField(max_length=7, choices=ContactType.choices, default=ContactType.PHONE)
+    contact_type = models.CharField(max_length=7, 
+                                    choices=ContactType.choices, 
+                                    default=ContactType.PHONE)
+    
     contact = models.CharField(max_length=200)
     guardian = models.ForeignKey(Guardian, on_delete=models.CASCADE, related_name='contacts')
 
     def __str__(self):
-        return self.guardian.full_name + ' - ' + self.contact_type
+        return self.contact_type + ' - ' + self.contact
 
 
 class Student(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    classroom = models.ForeignKey('school_management.ClassRoom', on_delete=models.CASCADE)
-    guardian = models.ForeignKey(Guardian, on_delete=models.PROTECT)
+    classroom = models.ForeignKey('school_management.ClassRoom', on_delete=models.CASCADE, related_name='students')
+    guardian = models.ForeignKey(Guardian, on_delete=models.PROTECT, related_name='students')
     date_of_birth = models.DateField(null=True, blank=True)
     student_number = models.CharField(max_length=200, null=True, blank=True)
 
@@ -89,11 +91,11 @@ class Enrolment(TimeStampedModel):
         ENROLLED = 'enrolled'
         WITHDRAWN = 'withdrawn'
 
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    classroom = models.ForeignKey('school_management.ClassRoom', on_delete=models.CASCADE)
+    student = models.OneToOneField(Student, on_delete=models.CASCADE)
+    classroom = models.ForeignKey('school_management.ClassRoom', on_delete=models.CASCADE, related_name='enrolments')
     enrolment_date = models.DateField()
 
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.ENROLLED)
 
     def __str__(self):
-        return self.student.user.get_full_name() + ' - ' + self.classroom.name
+        return self.student.user.get_full_name() or self.student.user.username

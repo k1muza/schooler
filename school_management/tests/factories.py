@@ -1,5 +1,5 @@
-from factory import Factory, SubFactory, Sequence
-from factory.fuzzy import FuzzyChoice
+from factory import SubFactory
+from factory.django import DjangoModelFactory as Factory
 from faker import Faker
 from ..models import School, Level, ClassRoom
 

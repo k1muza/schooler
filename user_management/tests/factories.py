@@ -1,9 +1,9 @@
-from factory import Factory, SubFactory, Sequence
-from factory.fuzzy import FuzzyChoice
+from factory import SubFactory, Sequence
+from factory.django import DjangoModelFactory as Factory
 from faker import Faker
 from school_management.tests.factories import ClassRoomFactory
 from user_management.models import Teacher
-from ..models import User, Guardian, Student
+from ..models import Enrolment, GuardianContact, User, Guardian, Student, UserContact, UserImage
 
 fake = Faker()
 
@@ -15,12 +15,39 @@ class UserFactory(Factory):
     password = fake.password()
 
 
+class UserContactFactory(Factory):
+    class Meta:
+        model = UserContact 
+    
+    contact_type = UserContact.ContactType.PHONE
+    contact = fake.phone_number()
+    user = SubFactory(UserFactory)
+
+
+class UserImageFactory(Factory):
+    class Meta:
+        model = UserImage
+
+    user = SubFactory(UserFactory)
+    image = fake.image_url()
+    is_profile_photo = False
+
+
 class GuardianFactory(Factory):
     class Meta:
         model = Guardian
 
-    full_name = fake.name()
+    full_name = f'Guardian {fake.name()}'
     contact_number = fake.phone_number()
+
+
+class GuardianContactFactory(Factory):
+    class Meta:
+        model = GuardianContact
+
+    contact_type = GuardianContact.ContactType.PHONE
+    contact = fake.phone_number()
+    guardian = SubFactory(GuardianFactory)
 
 
 class StudentFactory(Factory):
@@ -37,3 +64,14 @@ class TeacherFactory(Factory):
         model = Teacher
 
     user = SubFactory(UserFactory)
+
+
+class EnrolmentFactory(Factory):
+    class Meta:
+        model = Enrolment
+
+    student = SubFactory(StudentFactory)
+    classroom = SubFactory(ClassRoomFactory)
+    enrolment_date = fake.date()
+
+    status = Enrolment.Status.ENROLLED
