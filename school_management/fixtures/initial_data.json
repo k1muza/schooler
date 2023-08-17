@@ -1,0 +1,59 @@
+[
+    {
+        "model": "school_management.school",
+        "pk": 1,
+        "fields": {
+            "name": "Springfield Elementary School"
+        }
+    },
+    {
+        "model": "school_management.level",
+        "pk": 1,
+        "fields": {
+            "school": 1,
+            "name": "Grade 1"
+        }
+    },
+    {
+        "model": "school_management.level",
+        "pk": 2,
+        "fields": {
+            "school": 1,
+            "name": "Grade 2"
+        }
+    },
+    {
+        "model": "school_management.level",
+        "pk": 3,
+        "fields": {
+            "school": 1,
+            "name": "Grade 3"
+        }
+    },
+    {
+        "model": "school_management.level",
+        "pk": 4,
+        "fields": {
+            "school": 1,
+            "name": "Grade 4"
+        }
+    },
+    {
+        "model": "school_management.classroom",
+        "pk": 1,
+        "fields": {
+            "level": 1,
+            "teacher": 1,
+            "name": "Class 1A"
+        }
+    },
+    {
+        "model": "school_management.classroom",
+        "pk": 2,
+        "fields": {
+            "level": 1,
+            "teacher": 1,
+            "name": "Class 1B"
+        }
+    }
+]

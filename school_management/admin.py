@@ -1,3 +1,18 @@
 from django.contrib import admin
 
-# Register your models here.
+from school_management.models import ClassRoom, Level, School
+
+
+@admin.register(School)
+class SchoolAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Level)
+class LevelAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(ClassRoom)
+class ClassRoomAdmin(admin.ModelAdmin):
+    pass

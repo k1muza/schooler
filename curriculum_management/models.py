@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import F, Q
+from django.utils import timezone
 
 
 class Subject(models.Model):
@@ -24,6 +25,15 @@ class Syllabus(models.Model):
     levels = models.ManyToManyField('school_management.Level')
     content = models.TextField()
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['subject', 'levels'], 
+                name='unique_syllabus'
+            )
+        ]
+        verbose_name_plural = 'syllabi'
+
 
 class Exercise(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
@@ -38,5 +48,5 @@ class Exercise(models.Model):
 class ExerciseSubmission(models.Model):
     student = models.ForeignKey('user_management.Student', on_delete=models.CASCADE)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
-    submission_date = models.DateTimeField()
+    submission_date = models.DateTimeField(default=timezone.now)
     score = models.IntegerField()

@@ -1,4 +1,5 @@
 import pytest
+from curriculum_management.tests.factories import SubjectFactory
 from django.contrib import admin
 from user_management.models import Teacher
 from user_management.tests.factories import TeacherFactory, UserFactory
@@ -7,9 +8,11 @@ from user_management.tests.factories import TeacherFactory, UserFactory
 @pytest.mark.django_db
 def test_create_teacher():
     user = UserFactory()
-    teacher = Teacher.objects.create(user=user, qualifications="MSc in Physics")
+    subjects = [SubjectFactory() for _ in range(3)]
+    teacher = TeacherFactory(user=user, qualifications="MSc in Physics", subjects=subjects)
     assert teacher.user == user
     assert teacher.qualifications == "MSc in Physics"
+
 
 
 @pytest.mark.django_db
@@ -36,14 +39,6 @@ def test_delete_teacher():
     teacher.delete()
     with pytest.raises(Teacher.DoesNotExist):
         Teacher.objects.get(id=teacher_id)
-
-
-# @pytest.mark.django_db
-# def test_teacher_subjects_relation():
-#     subjects = SubjectFactory.create_batch(3)
-#     teacher = TeacherFactory()
-#     teacher.subjects.set(subjects)
-#     assert list(teacher.subjects.all()) == subjects
 
 
 @pytest.mark.django_db
