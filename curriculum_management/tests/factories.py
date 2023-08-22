@@ -1,19 +1,11 @@
 import datetime
+from assessment_management.tests.factories import ExerciseSubmissionFactory
 import factory
-import faker
-from factory import SubFactory
+from factory import SubFactory, Faker
 from factory.django import DjangoModelFactory
-from curriculum_management.models import (
-    Exercise,
-    ExerciseSubmission,
-    Subject,
-    Syllabus,
-    Term,
-)
+from curriculum_management.models import (Exam, Exercise, Subject, Syllabus, Term)
 from school_management.tests.factories import ClassRoomFactory
-from user_management.tests.factories import StudentFactory, TeacherFactory
-
-fake = faker.Faker()
+from user_management.tests.factories import TeacherFactory
 
 
 class SubjectFactory(DjangoModelFactory):
@@ -37,7 +29,7 @@ class TermFactory(DjangoModelFactory):
 class SyllabusFactory(DjangoModelFactory):
     class Meta:
         model = Syllabus
-        skip_postgeneration_save=True
+        skip_postgeneration_save = True
 
     subject = SubFactory(SubjectFactory)
     content = factory.Faker("text")
@@ -55,14 +47,14 @@ class SyllabusFactory(DjangoModelFactory):
 class ExerciseFactory(DjangoModelFactory):
     class Meta:
         model = Exercise
-        skip_postgeneration_save=True
+        skip_postgeneration_save = True
 
     subject = SubFactory(SubjectFactory)
     classroom = SubFactory(ClassRoomFactory)
     prepared_by = SubFactory(TeacherFactory)
-    title = fake.job()
-    content = fake.text()
-    total_score = fake.random_int(min=10, max=100)
+    title = Faker("word")
+    content = Faker("text")
+    total_score = Faker("pyint", min_value=0, max_value=100)
 
     @factory.post_generation
     def taken_by(self, create, extracted, **kwargs):
@@ -74,10 +66,13 @@ class ExerciseFactory(DjangoModelFactory):
                 ExerciseSubmissionFactory(exercise=self, student=student)
 
 
-class ExerciseSubmissionFactory(DjangoModelFactory):
+class ExamFactory(DjangoModelFactory):
     class Meta:
-        model = ExerciseSubmission
+        model = Exam
 
-    student = SubFactory(StudentFactory)
-    exercise = SubFactory(ExerciseFactory)
-    score = fake.random_int(min=0, max=100)
+    subject = SubFactory("curriculum_management.tests.factories.SubjectFactory")
+    level = SubFactory("school_management.tests.factories.LevelFactory")
+    prepared_by = SubFactory("user_management.tests.factories.TeacherFactory")
+    name = Faker("word")
+    date = Faker("date")
+    total_score = Faker("pyint", min_value=0, max_value=100)

@@ -40,9 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'attendance_management',
     'curriculum_management',
-    'exam_management',
     'school_management',
     'user_management',
+    'assessment_management',
+    'report_management',
 ]
 
 MIDDLEWARE = [

@@ -1,7 +1,7 @@
 import pytest
 from django.contrib import admin
-from exam_management.models import Exam
-from exam_management.tests.factories import ExamFactory
+from curriculum_management.models import Exam
+from curriculum_management.tests.factories import ExamFactory
 
 
 @pytest.mark.django_db
@@ -31,4 +31,4 @@ def test_delete_exam():
     assert Exam.objects.count() == 0
 
 def test_exam_admin_registration():
-    assert admin.site._registry.get(Exam) is not None, 'ClassRoom is not registered in the admin site'
+    assert admin.site._registry.get(Exam) is not None, 'Exam is not registered in the admin site'

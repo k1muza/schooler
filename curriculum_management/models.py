@@ -20,33 +20,31 @@ class Term(models.Model):
             )
         ]
 
+
 class Syllabus(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     levels = models.ManyToManyField('school_management.Level')
     content = models.TextField()
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['subject', 'levels'], 
-                name='unique_syllabus'
-            )
-        ]
         verbose_name_plural = 'syllabi'
 
 
 class Exercise(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     classroom = models.ForeignKey('school_management.ClassRoom', on_delete=models.CASCADE)
-    taken_by = models.ManyToManyField('user_management.Student', through='ExerciseSubmission')
+    taken_by = models.ManyToManyField('user_management.Student', through='assessment_management.ExerciseSubmission')
     prepared_by = models.ForeignKey('user_management.Teacher', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     content = models.TextField()
     total_score = models.IntegerField()
 
 
-class ExerciseSubmission(models.Model):
-    student = models.ForeignKey('user_management.Student', on_delete=models.CASCADE)
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
-    submission_date = models.DateTimeField(default=timezone.now)
-    score = models.IntegerField()
+class Exam(models.Model):
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    level = models.ForeignKey('school_management.Level', on_delete=models.CASCADE)
+    taken_by = models.ManyToManyField('user_management.Student', through='assessment_management.ExamSubmission')
+    prepared_by = models.ForeignKey('user_management.Teacher', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    date = models.DateField()
+    total_score = models.IntegerField()
