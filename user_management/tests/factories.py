@@ -1,8 +1,7 @@
 import factory
+from faker import Faker
 from factory import SubFactory, Sequence
 from factory.django import DjangoModelFactory as Factory
-from faker import Faker
-from school_management.tests.factories import ClassRoomFactory
 from user_management.models import Teacher
 from ..models import (
     Enrolment,
@@ -50,6 +49,7 @@ class GuardianFactory(Factory):
     class Meta:
         model = Guardian
 
+    student = SubFactory('user_management.tests.factories.StudentFactory')
     full_name = f"Guardian {fake.name()}"
     contact_number = fake.phone_number()
 
@@ -68,8 +68,8 @@ class StudentFactory(Factory):
         model = Student
 
     user = SubFactory(UserFactory)
-    guardian = SubFactory(GuardianFactory)
-    classroom = SubFactory(ClassRoomFactory)
+    classroom = SubFactory('school_management.tests.factories.ClassRoomFactory')
+    school = SubFactory('school_management.tests.factories.SchoolFactory')
 
 
 class TeacherFactory(Factory):
@@ -79,6 +79,7 @@ class TeacherFactory(Factory):
 
     user = SubFactory(UserFactory)
     qualifications = fake.text()
+    school = SubFactory('school_management.tests.factories.SchoolFactory')
 
     @factory.post_generation
     def subjects(self, create, extracted, **kwargs):
@@ -95,7 +96,7 @@ class EnrolmentFactory(Factory):
         model = Enrolment
 
     student = SubFactory(StudentFactory)
-    classroom = SubFactory(ClassRoomFactory)
+    classroom = SubFactory('school_management.tests.factories.ClassRoomFactory')
     enrolment_date = fake.date()
 
     status = Enrolment.Status.ENROLLED

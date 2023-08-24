@@ -1,6 +1,6 @@
 from django.db import transaction
 from rest_framework import serializers
-from rest_framework.fields import empty
+from school_management.serializers import SchoolSerializer
 from user_management.models import Teacher, User
 from curriculum_management.serializers import SubjectSerializer
 
@@ -29,6 +29,7 @@ class CustomUserSerializer(UserSerializer):
 class TeacherSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
     user = CustomUserSerializer()
+    school = SchoolSerializer()
 
     class Meta:
         model = Teacher
@@ -46,10 +47,15 @@ class TeacherSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user')
+        school_data = validated_data.pop('school')
         
         for key, value in user_data.items():
             setattr(instance.user, key, value)
         instance.user.save()
+
+        for key, value in school_data.items():
+            setattr(instance.school, key, value)
+        instance.school.save()
 
         for key, value in validated_data.items():
             setattr(instance, key, value)

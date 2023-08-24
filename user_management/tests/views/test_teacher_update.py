@@ -11,6 +11,9 @@ def test_teacher_update_authenticated(api_client):
 
     url = reverse("teacher-update", args=[teacher.id])
     updated_data = {
+        "school": {
+            "name": "Mt Sunset"
+        },
         "qualifications": "Updated qualifications",
         "user": {
             key: value

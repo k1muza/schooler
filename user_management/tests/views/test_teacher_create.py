@@ -28,6 +28,26 @@ def test_teacher_create_success(api_client):
 
 
 @pytest.mark.django_db
+def test_teacher_create_success():
+    client = APIClient()
+    user_data = {
+        'username': 'testuser',
+        'password': 'testpass',
+        'email': 'test@email.com',
+        'first_name': 'Test',
+        'last_name': 'User',
+    }
+    data = {
+        'user': user_data,
+        'qualifications': 'Ph.D. in Education',
+    }
+    url = reverse('teacher-create')
+    response = client.post(url, data, format="json")
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert Teacher.objects.count() == 0
+
+
+@pytest.mark.django_db
 def test_teacher_create_validation_error(api_client):
     data = {
         'qualifications': 'Ph.D. in Education',

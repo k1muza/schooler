@@ -43,6 +43,7 @@ class UserContact(models.Model):
 
 class Teacher(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    school = models.ForeignKey('school_management.School', on_delete=models.CASCADE)
     subjects = models.ManyToManyField('curriculum_management.Subject')
     qualifications = models.TextField(null=True, blank=True)
 
@@ -51,12 +52,13 @@ class Teacher(TimeStampedModel):
 
 
 class Guardian(TimeStampedModel):
+    student = models.ForeignKey('Student', on_delete=models.CASCADE, related_name='guardians')
     full_name = models.CharField(max_length=200)
     contact_number = models.CharField(max_length=200)
 
     def __str__(self):
         return self.full_name
-    
+
 
 class GuardianContact(models.Model):
     class ContactType(models.TextChoices):
@@ -78,7 +80,7 @@ class GuardianContact(models.Model):
 class Student(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     classroom = models.ForeignKey('school_management.ClassRoom', on_delete=models.CASCADE, related_name='students')
-    guardian = models.ForeignKey(Guardian, on_delete=models.PROTECT, related_name='students')
+    school = models.ForeignKey('school_management.School', on_delete=models.CASCADE)
     date_of_birth = models.DateField(null=True, blank=True)
     student_number = models.CharField(max_length=200, null=True, blank=True)
 

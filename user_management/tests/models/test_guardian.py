@@ -1,7 +1,7 @@
 import pytest
 from django.contrib import admin
 from user_management.models import Guardian
-from user_management.tests.factories import GuardianFactory
+from user_management.tests.factories import GuardianFactory, StudentFactory
 
 
 @pytest.mark.django_db
@@ -35,6 +35,11 @@ def test_delete_guardian():
     with pytest.raises(Guardian.DoesNotExist):
         Guardian.objects.get(pk=guardian_id)
 
+@pytest.mark.django_db
+def test_student_guardian_relation():
+    student = StudentFactory()
+    guardian = GuardianFactory(student=student)
+    assert guardian in student.guardians.all()
 
 @pytest.mark.django_db
 def test_guardian_str():
