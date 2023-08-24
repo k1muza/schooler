@@ -32,3 +32,8 @@ def test_delete_exam():
 
 def test_exam_admin_registration():
     assert admin.site._registry.get(Exam) is not None, 'Exam is not registered in the admin site'
+
+@pytest.mark.django_db
+def test_str_repr():
+    exam = ExamFactory()
+    assert str(exam) == f'{exam.name} - {exam.subject.name} - {exam.level.name} - {exam.taken_on.year}'

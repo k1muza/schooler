@@ -44,7 +44,7 @@ def test_delete_teacher():
 @pytest.mark.django_db
 def test_teacher_str():
     teacher = TeacherFactory()
-    assert str(teacher) == teacher.user.username
+    assert str(teacher) == teacher.user.get_full_name()
 
 
 def test_teacher_admin_registration():

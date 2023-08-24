@@ -38,3 +38,9 @@ def test_syllabus_admin_registration():
 
 def test_syllabus_verbose_plural_name():
     assert Syllabus._meta.verbose_name_plural == 'syllabi'
+
+@pytest.mark.django_db
+def test_str_repr():
+    syllabus = SyllabusFactory()
+    syllabus_levels = [str(level) for level in syllabus.levels.all()]
+    assert str(syllabus) == syllabus.subject.name + ' - ' + ', '.join(syllabus_levels)

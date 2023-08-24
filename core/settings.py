@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'user_management',
     'assessment_management',
     'report_management',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -149,3 +150,13 @@ CACHES = {
 }
 
 AUTH_USER_MODEL = 'user_management.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}

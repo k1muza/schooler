@@ -1,8 +1,8 @@
-from curriculum_management.models import Exercise
-from curriculum_management.tests.factories import ExerciseFactory, SubjectFactory
 import pytest
-from school_management.tests.factories import ClassRoomFactory
-from user_management.tests.factories import StudentFactory, TeacherFactory
+from curriculum_management.models import Exercise
+from curriculum_management.tests.factories import ExerciseFactory
+from user_management.tests.factories import StudentFactory
+from django.contrib import admin
 
 
 @pytest.mark.django_db
@@ -39,3 +39,11 @@ def test_delete_exercise():
 
     # Verifying the deletion
     assert Exercise.objects.count() == 0
+
+def test_exercise_admin_registration():
+    assert admin.site._registry.get(Exercise) is not None, "Exercise is not registered in the admin site"
+
+@pytest.mark.django_db
+def test_str_repr():
+    exercise = ExerciseFactory()
+    assert str(exercise) == exercise.title

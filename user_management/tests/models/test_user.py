@@ -45,7 +45,7 @@ def test_delete_user():
 @pytest.mark.django_db
 def test_user_str():
     user = UserFactory.create(username='test_user')
-    assert str(user) == 'test_user'
+    assert str(user) == user.get_full_name()
 
 
 def test_user_admin_registration():

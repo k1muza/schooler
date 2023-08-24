@@ -33,3 +33,8 @@ def test_delete_subject():
 
 def test_subject_admin_registration():
     assert admin.site._registry.get(Subject) is not None, 'Subject is not registered in the admin site'
+
+@pytest.mark.django_db
+def test_str_repr():
+    subject = SubjectFactory()
+    assert str(subject) == subject.name

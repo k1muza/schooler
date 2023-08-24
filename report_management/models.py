@@ -7,3 +7,6 @@ class StudentReport(TimeStampedModel):
     teacher = models.ForeignKey('user_management.Teacher', on_delete=models.CASCADE)
     term = models.ForeignKey('curriculum_management.Term', on_delete=models.CASCADE)
     subjects = models.ManyToManyField('curriculum_management.Subject')
+
+    def __str__(self):
+        return self.student.user.get_full_name()

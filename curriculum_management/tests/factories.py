@@ -1,8 +1,9 @@
 import datetime
-from assessment_management.tests.factories import ExerciseSubmissionFactory
 import factory
+from django.utils import timezone
 from factory import SubFactory, Faker
 from factory.django import DjangoModelFactory
+from assessment_management.tests.factories import ExerciseSubmissionFactory
 from curriculum_management.models import (Exam, Exercise, Subject, Syllabus, Term)
 from school_management.tests.factories import ClassRoomFactory
 from user_management.tests.factories import TeacherFactory
@@ -74,5 +75,5 @@ class ExamFactory(DjangoModelFactory):
     level = SubFactory("school_management.tests.factories.LevelFactory")
     prepared_by = SubFactory("user_management.tests.factories.TeacherFactory")
     name = Faker("word")
-    date = Faker("date")
+    taken_on = factory.LazyFunction(timezone.now)
     total_score = Faker("pyint", min_value=0, max_value=100)

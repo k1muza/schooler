@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from curriculum_management.models import Exam, Subject, Syllabus, Term
+from curriculum_management.models import Exam, Exercise, Subject, Syllabus, Term
 
 
 @admin.register(Subject)
@@ -20,4 +20,9 @@ class TermAdmin(admin.ModelAdmin):
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Exercise)
+class ExerciseAdmin(admin.ModelAdmin):
     pass

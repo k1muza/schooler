@@ -24,6 +24,8 @@ class UserFactory(Factory):
     username = Sequence(lambda n: f"user{n}")
     password = fake.password()
     gender = User.Gender.FEMALE
+    first_name = fake.first_name()
+    last_name = fake.last_name()
 
 
 class UserContactFactory(Factory):
