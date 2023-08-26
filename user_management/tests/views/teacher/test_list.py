@@ -6,7 +6,9 @@ from user_management.models import Teacher
 from user_management.serializers import TeacherSerializer
 from user_management.tests.factories import TeacherFactory
 
+
 @pytest.mark.django_db
+@pytest.mark.views
 def test_get_teacher_list_authenticated(api_client):
     teacher1 = TeacherFactory()
     teacher2 = TeacherFactory()
@@ -19,7 +21,9 @@ def test_get_teacher_list_authenticated(api_client):
     serializer = TeacherSerializer(teachers, many=True)
     assert response.data == serializer.data
 
+
 @pytest.mark.django_db
+@pytest.mark.views
 def test_get_teacher_list_unauthenticated():
     client = APIClient()
     url = reverse('teacher-list')

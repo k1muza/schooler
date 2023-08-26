@@ -7,6 +7,7 @@ from user_management.tests.factories import UserFactory, UserImageFactory
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_create_user_image():
     user_image = UserImageFactory.create()
     assert user_image.pk is not None
@@ -14,6 +15,7 @@ def test_create_user_image():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_read_user_image():
     user_image = UserImageFactory(image='http://example.com/image.jpg')
     retrieved_image = UserImage.objects.get(image='http://example.com/image.jpg')
@@ -21,6 +23,7 @@ def test_read_user_image():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_update_user_image():
     user_image = UserImageFactory(image='http://example.com/image.jpg')
     user_image.image = 'http://example.com/updated_image.jpg'
@@ -30,6 +33,7 @@ def test_update_user_image():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_delete_user_image():
     user_image = UserImageFactory()
     user_image_id = user_image.pk
@@ -39,6 +43,7 @@ def test_delete_user_image():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_unique_user_profile_image():
     user = UserFactory()
     UserImageFactory(user=user, is_profile_photo=True)
@@ -47,12 +52,14 @@ def test_unique_user_profile_image():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_user_image_str():
     user_image = UserImageFactory(image='http://example.com/image.jpg')
     assert str(user_image) == user_image.image.url
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_user_profile_image_str():
     user_image = UserImageFactory(image='http://example.com/image.jpg', is_profile_photo=True)
     assert str(user_image) == user_image.image.url + ' (Profile Photo)'

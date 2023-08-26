@@ -5,12 +5,14 @@ from attendance_management.tests.fixtures import ClassAttendanceFactory
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_create_class_attendance():
     attendance = ClassAttendanceFactory()
     assert attendance.status == ClassAttendance.Status.PRESENT
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_read_class_attendance():
     attendance = ClassAttendanceFactory()
     retrieved_attendance = ClassAttendance.objects.get(pk=attendance.pk)
@@ -18,6 +20,7 @@ def test_read_class_attendance():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_update_class_attendance():
     attendance = ClassAttendanceFactory()
     new_status = ClassAttendance.Status.ABSENT
@@ -28,6 +31,7 @@ def test_update_class_attendance():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_delete_class_attendance():
     attendance = ClassAttendanceFactory()
     attendance.delete()
@@ -35,12 +39,14 @@ def test_delete_class_attendance():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_class_attendance_str():
     attendance = ClassAttendanceFactory()
     assert str(attendance) == f'{attendance.student} - {attendance.classroom} - {attendance.attendance_date}'
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_invalid_status():
     with pytest.raises(DataError):
         ClassAttendanceFactory(status='InvalidStatus')

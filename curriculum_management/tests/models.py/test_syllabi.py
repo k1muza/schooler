@@ -6,19 +6,24 @@ from school_management.tests.factories import LevelFactory
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_create_syllabus():
     syllabus = SyllabusFactory(levels=[LevelFactory(), LevelFactory()])
     assert Syllabus.objects.count() == 1
     assert syllabus.subject == Syllabus.objects.first().subject
     assert syllabus.levels.count() == 2
 
+
 @pytest.mark.django_db
+@pytest.mark.models
 def test_read_syllabus():
     syllabus = SyllabusFactory()
     retrieved_syllabus = Syllabus.objects.get(pk=syllabus.pk)
     assert retrieved_syllabus == syllabus
 
+
 @pytest.mark.django_db
+@pytest.mark.models
 def test_update_syllabus():
     syllabus = SyllabusFactory()
     new_content = "Updated Content"
@@ -27,19 +32,27 @@ def test_update_syllabus():
     retrieved_syllabus = Syllabus.objects.get(pk=syllabus.pk)
     assert retrieved_syllabus.content == new_content
 
+
 @pytest.mark.django_db
+@pytest.mark.models
 def test_delete_syllabus():
     syllabus = SyllabusFactory()
     syllabus.delete()
     assert Syllabus.objects.count() == 0
 
+
+@pytest.mark.models
 def test_syllabus_admin_registration():
     assert admin.site._registry.get(Syllabus) is not None, 'Syllabus is not registered in the admin site'
 
+
+@pytest.mark.models
 def test_syllabus_verbose_plural_name():
     assert Syllabus._meta.verbose_name_plural == 'syllabi'
 
+
 @pytest.mark.django_db
+@pytest.mark.models
 def test_str_repr():
     syllabus = SyllabusFactory()
     syllabus_levels = [str(level) for level in syllabus.levels.all()]

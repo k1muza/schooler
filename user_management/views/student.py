@@ -4,40 +4,38 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
-from .models import Teacher
-from .serializers import TeacherSerializer
+from ..models import Student
+from ..serializers import StudentSerializer
 
 
 @api_view(['GET'])
-def teacher_list(request):
-    teachers = Teacher.objects.all()
-    serializer = TeacherSerializer(teachers, many=True)
+def list(request):
+    students = Student.objects.all()
+    serializer = StudentSerializer(students, many=True)
     return Response(serializer.data)
 
 
 @api_view(['GET'])
-def teacher_detail(request, pk):
-    teacher = get_object_or_404(Teacher, id=pk)
-    serializer = TeacherSerializer(teacher, many=False)
+def detail(request, pk):
+    student = get_object_or_404(Student, id=pk)
+    serializer = StudentSerializer(student, many=False)
     return Response(serializer.data)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def teacher_create(request):
-    print('logged in user', request.user, request.user.is_authenticated)
-    serializer = TeacherSerializer(data=request.data)
+def create(request):
+    serializer = StudentSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    print('errors', serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['PUT'])
-def teacher_update(request, pk):
-    teacher = get_object_or_404(Teacher, id=pk)
-    serializer = TeacherSerializer(instance=teacher, data=request.data)
+def update(request, pk):
+    student = get_object_or_404(Student, id=pk)
+    serializer = StudentSerializer(instance=student, data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
@@ -46,19 +44,19 @@ def teacher_update(request, pk):
 
 
 @api_view(['DELETE'])
-def teacher_delete(request, pk):
-    teacher = get_object_or_404(Teacher, id=pk)
-    teacher.delete()
-    return Response("Teacher deleted successfully")
+def delete(request, pk):
+    student = get_object_or_404(Student, id=pk)
+    student.delete()
+    return Response("Student deleted successfully")
 
 
 @api_view(['GET'])
-def teacher_search(request, search):
-    teachers = Teacher.objects.filter(
+def search(request, search):
+    students = Student.objects.filter(
         Q(user__first_name__icontains=search) | 
         Q(user__last_name__icontains=search) | 
         Q(user__username__icontains=search) |
         Q(user__email__icontains=search)
     )
-    serializer = TeacherSerializer(teachers, many=True)
+    serializer = StudentSerializer(students, many=True)
     return Response(serializer.data)

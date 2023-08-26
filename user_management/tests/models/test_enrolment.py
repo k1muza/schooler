@@ -7,6 +7,7 @@ from user_management.tests.factories import EnrolmentFactory, StudentFactory
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_create_enrolment():
     student = StudentFactory()
     classroom = ClassRoomFactory()
@@ -20,6 +21,7 @@ def test_create_enrolment():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_read_enrolment():
     enrolment = EnrolmentFactory()
     retrieved_enrolment = Enrolment.objects.get(id=enrolment.id)
@@ -27,6 +29,7 @@ def test_read_enrolment():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_update_enrolment():
     enrolment = EnrolmentFactory(status=Enrolment.Status.ENROLLED)
     enrolment.status = Enrolment.Status.WITHDRAWN
@@ -36,6 +39,7 @@ def test_update_enrolment():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_delete_enrolment():
     enrolment = EnrolmentFactory()
     enrolment_id = enrolment.id
@@ -45,6 +49,7 @@ def test_delete_enrolment():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_enrolment_student_classroom_relation():
     student = StudentFactory()
     classroom = ClassRoomFactory()
@@ -54,10 +59,12 @@ def test_enrolment_student_classroom_relation():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_enrolment_str():
     enrolment = EnrolmentFactory()
     assert str(enrolment) == str(enrolment.student.user)
 
 
+@pytest.mark.models
 def test_enrolment_admin_registration():
     assert admin.site._registry.get(Enrolment) is not None, 'Enrolment is not registered in the admin site'

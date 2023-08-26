@@ -1,3 +1,4 @@
+import datetime
 import factory
 from faker import Faker
 from factory import SubFactory, Sequence
@@ -70,6 +71,7 @@ class StudentFactory(Factory):
     user = SubFactory(UserFactory)
     classroom = SubFactory('school_management.tests.factories.ClassRoomFactory')
     school = SubFactory('school_management.tests.factories.SchoolFactory')
+    date_of_birth = factory.Faker('date_between_dates', date_start=datetime.date(2012, 1, 1), date_end=datetime.date(2015, 12, 31))
 
 
 class TeacherFactory(Factory):

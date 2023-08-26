@@ -6,6 +6,7 @@ from user_management.tests.factories import StudentFactory, UserFactory
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_create_student():
     user = UserFactory()
     classroom = ClassRoomFactory()
@@ -15,6 +16,7 @@ def test_create_student():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_read_student():
     student = StudentFactory()
     retrieved_student = Student.objects.get(pk=student.pk)
@@ -22,6 +24,7 @@ def test_read_student():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_update_student():
     student = StudentFactory()
     new_classroom = ClassRoomFactory()
@@ -32,6 +35,7 @@ def test_update_student():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_delete_student():
     student = StudentFactory()
     student.delete()
@@ -40,6 +44,7 @@ def test_delete_student():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_user_student_relation():
     user = UserFactory()
     student = StudentFactory(user=user)
@@ -47,6 +52,7 @@ def test_user_student_relation():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_classroom_student_relation():
     classroom = ClassRoomFactory()
     student = StudentFactory(classroom=classroom)
@@ -54,9 +60,12 @@ def test_classroom_student_relation():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_student_str():
     student = StudentFactory()
     assert str(student) == student.user.get_full_name()
 
+
+@pytest.mark.models
 def test_student_admin_registration():
     assert admin.site._registry.get(Student) is not None, 'Student is not registered in the admin site'

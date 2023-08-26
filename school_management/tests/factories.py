@@ -17,7 +17,6 @@ class LevelFactory(Factory):
         model = Level
 
     name = fake.word()
-    school = SubFactory(SchoolFactory)
 
 
 class ClassRoomFactory(Factory):
@@ -26,4 +25,5 @@ class ClassRoomFactory(Factory):
 
     name = fake.word()
     level = SubFactory(LevelFactory)
+    school = SubFactory(SchoolFactory)
     teacher = SubFactory('user_management.tests.factories.TeacherFactory')

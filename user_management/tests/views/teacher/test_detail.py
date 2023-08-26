@@ -5,7 +5,9 @@ from rest_framework.test import APIClient
 from user_management.serializers import TeacherSerializer
 from user_management.tests.factories import TeacherFactory
 
+
 @pytest.mark.django_db
+@pytest.mark.views
 def test_get_teacher_detail_authenticated(api_client):
     teacher = TeacherFactory()
     url = reverse('teacher-detail', args=[teacher.id])
@@ -14,7 +16,9 @@ def test_get_teacher_detail_authenticated(api_client):
     serializer = TeacherSerializer(teacher)
     assert response.data == serializer.data
 
+
 @pytest.mark.django_db
+@pytest.mark.views
 def test_get_teacher_detail_unauthenticated():
     teacher = TeacherFactory()
     client = APIClient()
@@ -22,7 +26,9 @@ def test_get_teacher_detail_unauthenticated():
     response = client.get(url)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+
 @pytest.mark.django_db
+@pytest.mark.views
 def test_get_teacher_detail_not_found(api_client):
     url = reverse('teacher-detail', args=[999])
     response = api_client.get(url)

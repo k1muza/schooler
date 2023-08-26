@@ -6,6 +6,7 @@ from user_management.tests.factories import UserContactFactory
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_create_user_contact():
     user_contact = UserContactFactory()
     assert user_contact is not None
@@ -13,7 +14,7 @@ def test_create_user_contact():
 
 
 @pytest.mark.django_db
-@pytest.mark.django_db
+@pytest.mark.models
 def test_read_user_contact():
     user_contact = UserContactFactory(contact='1234567890')
     retrieved_contact = UserContact.objects.get(contact='1234567890')
@@ -21,6 +22,7 @@ def test_read_user_contact():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_update_user_contact():
     user_contact = UserContactFactory(contact='1234567890')
     user_contact.contact = '0987654321'
@@ -30,6 +32,7 @@ def test_update_user_contact():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_delete_user_contact():
     user_contact = UserContactFactory()
     user_contact_id = user_contact.pk
@@ -39,22 +42,27 @@ def test_delete_user_contact():
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_invalid_contact_type():
     contact = UserContactFactory(contact_type='invalid')
     with pytest.raises(ValidationError):
         contact.full_clean()
 
+
 @pytest.mark.django_db
+@pytest.mark.models
 def test_user_contact_str():
     user_contact = UserContactFactory()
     assert str(user_contact) == user_contact.contact
 
 
 @pytest.mark.django_db
+@pytest.mark.models
 def test_user_contact_str():
     user_contact = UserContactFactory()
     assert str(user_contact) == 'phone - ' + user_contact.contact
 
 
+@pytest.mark.models
 def test_user_contact_admin_registration():
     assert admin.site._registry.get(UserContact) is not None, 'User contact is not registered in the admin site'
