@@ -86,6 +86,18 @@ class Student(TimeStampedModel):
 
     def __str__(self):
         return self.user.get_full_name()
+    
+    @property
+    def teacher(self):
+        return self.classroom.teacher
+    
+
+class SchoolAdmin(TimeStampedModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    school = models.ForeignKey('school_management.School', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return (self.user.get_full_name() or self.user.username) + ' - ' + self.school.name
 
 
 class Enrolment(TimeStampedModel):

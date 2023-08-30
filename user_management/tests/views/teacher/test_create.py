@@ -7,7 +7,8 @@ from user_management.models import Teacher
 
 
 @pytest.mark.django_db
-def test_teacher_create_success(api_client):
+def test_teacher_create_success(user_client):
+    client, _ = user_client
     school = SchoolFactory()
     user_data = {
         'username': 'testuser',
@@ -22,7 +23,7 @@ def test_teacher_create_success(api_client):
         'qualifications': 'Ph.D. in Education',
     }
     url = reverse('teacher-create')
-    response = api_client.post(url, data, format="json")
+    response = client.post(url, data, format="json")
     assert response.status_code == status.HTTP_201_CREATED
     assert Teacher.objects.count() == 1
     teacher = Teacher.objects.first()
@@ -52,16 +53,19 @@ def test_teacher_create_unauthenticated():
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert Teacher.objects.count() == 0
 
+
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_validation_error(api_client):
+def test_teacher_create_validation_error(user_client):
+    client, _ = user_client
     data = {
         'qualifications': 'Ph.D. in Education',
     }
     url = reverse('teacher-create')
-    response = api_client.post(url, data, format="json")
+    response = client.post(url, data, format="json")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'school_id is required' in str(response.data)
+
 
 @pytest.mark.django_db
 @pytest.mark.views

@@ -9,12 +9,13 @@ from user_management.tests.factories import TeacherFactory
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_teacher_list_authenticated(api_client):
+def test_get_teacher_list_authenticated(user_client):
+    client, _ = user_client
     teacher1 = TeacherFactory()
     teacher2 = TeacherFactory()
 
     url = reverse('teacher-list')
-    response = api_client.get(url)
+    response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
 
     teachers = Teacher.objects.all()

@@ -10,7 +10,8 @@ from user_management.tests.factories import StudentFactory
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_update_authenticated(api_client):
+def test_student_update_authenticated(user_client):
+    client, _ = user_client
     student: Student = StudentFactory()
 
     url = reverse("student-update", args=[student.id])
@@ -20,7 +21,7 @@ def test_student_update_authenticated(api_client):
         "user_id": student.user.pk,
         "classroom_id": student.classroom.pk
     }
-    response = api_client.put(url, updated_data, format="json")
+    response = client.put(url, updated_data, format="json")
     assert response.status_code == status.HTTP_200_OK
     student.refresh_from_db()
     assert student.date_of_birth.strftime("%Y-%m-%d") == updated_data["date_of_birth"]
@@ -38,7 +39,8 @@ def test_student_update_unauthenticated():
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_update_not_found(api_client):
+def test_student_update_not_found(user_client):
+    client, _ = user_client
     url = reverse("student-update", args=[999])
-    response = api_client.put(url, {}, format="json")
+    response = client.put(url, {}, format="json")
     assert response.status_code == status.HTTP_404_NOT_FOUND

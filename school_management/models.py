@@ -16,9 +16,9 @@ class Level(TimeStampedModel):
         return self.name
 
 class ClassRoom(TimeStampedModel):
-    school = models.ForeignKey(School, on_delete=models.CASCADE)
-    level = models.ForeignKey(Level, on_delete=models.CASCADE)
-    teacher = models.ForeignKey('user_management.Teacher', on_delete=models.CASCADE)
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='classrooms')
+    level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name='classrooms')
+    teacher = models.ForeignKey('user_management.Teacher', on_delete=models.CASCADE, related_name='classrooms')
     name = models.CharField(max_length=255)
 
     def __str__(self):

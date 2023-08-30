@@ -8,10 +8,11 @@ from user_management.tests.factories import TeacherFactory
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_teacher_detail_authenticated(api_client):
+def test_get_teacher_detail_authenticated(user_client):
+    client, _ = user_client
     teacher = TeacherFactory()
     url = reverse('teacher-detail', args=[teacher.id])
-    response = api_client.get(url)
+    response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
     serializer = TeacherSerializer(teacher)
     assert response.data == serializer.data
@@ -29,7 +30,8 @@ def test_get_teacher_detail_unauthenticated():
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_teacher_detail_not_found(api_client):
+def test_get_teacher_detail_not_found(user_client):
+    client, _ = user_client
     url = reverse('teacher-detail', args=[999])
-    response = api_client.get(url)
+    response = client.get(url)
     assert response.status_code == status.HTTP_404_NOT_FOUND

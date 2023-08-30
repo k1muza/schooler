@@ -102,3 +102,11 @@ class EnrolmentFactory(Factory):
     enrolment_date = fake.date()
 
     status = Enrolment.Status.ENROLLED
+
+
+class SchoolAdminFactory(Factory):
+    class Meta:
+        model = 'user_management.SchoolAdmin'
+
+    user = SubFactory(UserFactory)
+    school = SubFactory('school_management.tests.factories.SchoolFactory')

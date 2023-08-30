@@ -7,7 +7,8 @@ from school_management.tests.factories import LevelFactory
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_level_update(api_client):
+def test_level_update(user_client):
+    client, _ = user_client
     level = LevelFactory()
     old_name = level.name
 
@@ -21,7 +22,7 @@ def test_level_update(api_client):
     url = reverse('level-update', kwargs={'pk': level.pk})
 
     # Perform the API call
-    response = api_client.put(url, data)
+    response = client.put(url, data)
 
     # Check HTTP status
     assert response.status_code == status.HTTP_200_OK
@@ -34,7 +35,8 @@ def test_level_update(api_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_level_update_bad_request(api_client):
+def test_level_update_bad_request(user_client):
+    client, _ = user_client
     level = LevelFactory()
 
     # Prepare bad data
@@ -43,7 +45,7 @@ def test_level_update_bad_request(api_client):
     }
 
     url = reverse('level-update', kwargs={'pk': level.pk})
-    response = api_client.put(url, data)
+    response = client.put(url, data)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'name' in response.data  # Check that 'name' field is in the errors

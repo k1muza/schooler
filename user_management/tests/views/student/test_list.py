@@ -8,12 +8,13 @@ from user_management.tests.factories import StudentFactory
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_student_list_authenticated(api_client):
+def test_get_student_list_authenticated(user_client):
+    client, _ = user_client
     student1 = StudentFactory()
     student2 = StudentFactory()
 
     url = reverse('student-list')
-    response = api_client.get(url)
+    response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
 
     students = Student.objects.all()
