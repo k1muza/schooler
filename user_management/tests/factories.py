@@ -6,7 +6,6 @@ from factory.django import DjangoModelFactory as Factory
 from user_management.models import Teacher
 from ..models import (
     Enrolment,
-    GuardianContact,
     User,
     Guardian,
     Student,
@@ -49,29 +48,48 @@ class UserImageFactory(Factory):
 class GuardianFactory(Factory):
     class Meta:
         model = Guardian
+        skip_postgeneration_save=True
 
-    student = SubFactory('user_management.tests.factories.StudentFactory')
-    full_name = f"Guardian {fake.name()}"
-    contact_number = fake.phone_number()
+    user = SubFactory(UserFactory)
+    occupation = factory.Faker('job')
 
+    @factory.post_generation
+    def contacts(self, create, extracted, **kwargs):
+        if not create:
+            return
 
-class GuardianContactFactory(Factory):
-    class Meta:
-        model = GuardianContact
+        if extracted:
+            for contact in extracted:
+                self.contacts.add(contact)
 
-    contact_type = GuardianContact.ContactType.PHONE
-    contact = fake.phone_number()
-    guardian = SubFactory(GuardianFactory)
+    @factory.post_generation
+    def students(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for student in extracted:
+                self.students.add(student)
 
 
 class StudentFactory(Factory):
     class Meta:
         model = Student
+        skip_postgeneration_save=True
 
     user = SubFactory(UserFactory)
     classroom = SubFactory('school_management.tests.factories.ClassRoomFactory')
     school = SubFactory('school_management.tests.factories.SchoolFactory')
     date_of_birth = factory.Faker('date_between_dates', date_start=datetime.date(2012, 1, 1), date_end=datetime.date(2015, 12, 31))
+
+    @factory.post_generation
+    def guardians(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for guardian in extracted:
+                self.guardians.add(guardian)
 
 
 class TeacherFactory(Factory):
@@ -82,6 +100,15 @@ class TeacherFactory(Factory):
     user = SubFactory(UserFactory)
     qualifications = fake.text()
     school = SubFactory('school_management.tests.factories.SchoolFactory')
+
+    @factory.post_generation
+    def classrooms(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for classroom in extracted:
+                self.classrooms.add(classroom)
 
     @factory.post_generation
     def subjects(self, create, extracted, **kwargs):

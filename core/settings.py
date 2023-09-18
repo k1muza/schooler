@@ -38,14 +38,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'reversion',
+    'guardian',
+    'django_extensions',
     'attendance_management',
     'curriculum_management',
     'school_management',
     'user_management',
     'assessment_management',
     'report_management',
-    'rest_framework',
-    'guardian',
 ]
 
 AUTHENTICATION_BACKENDS = (

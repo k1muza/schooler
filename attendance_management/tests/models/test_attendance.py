@@ -1,7 +1,7 @@
 from django.db import DataError
 import pytest
 from attendance_management.models import ClassAttendance
-from attendance_management.tests.fixtures import ClassAttendanceFactory
+from attendance_management.tests.factories import ClassAttendanceFactory
 
 
 @pytest.mark.django_db

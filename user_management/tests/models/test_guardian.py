@@ -7,27 +7,27 @@ from user_management.tests.factories import GuardianFactory, StudentFactory
 @pytest.mark.django_db
 @pytest.mark.models
 def test_create_guardian():
-    guardian = GuardianFactory()
+    guardian = GuardianFactory(user__username='guardian')
     assert guardian is not None
-    assert guardian.full_name.startswith('Guardian')
+    assert guardian.user.username == 'guardian'
 
 
 @pytest.mark.django_db
 @pytest.mark.models
 def test_read_guardian():
-    guardian = GuardianFactory(full_name='Guardian John Doe')
-    retrieved_guardian = Guardian.objects.get(full_name='Guardian John Doe')
+    guardian = GuardianFactory(user__username='guardian')
+    retrieved_guardian = Guardian.objects.get(user__username='guardian')
     assert retrieved_guardian == guardian
 
 
 @pytest.mark.django_db
 @pytest.mark.models
 def test_update_guardian():
-    guardian = GuardianFactory(full_name='Guardian John Doe')
-    guardian.full_name = 'Guardian Jane Doe'
+    guardian = GuardianFactory(user__username='guardian')
+    guardian.occupation = 'Doctor'
     guardian.save()
     retrieved_guardian = Guardian.objects.get(pk=guardian.pk)
-    assert retrieved_guardian.full_name == 'Guardian Jane Doe'
+    assert retrieved_guardian.occupation == 'Doctor'
 
 
 @pytest.mark.django_db
@@ -44,14 +44,14 @@ def test_delete_guardian():
 @pytest.mark.models
 def test_student_guardian_relation():
     student = StudentFactory()
-    guardian = GuardianFactory(student=student)
+    guardian = GuardianFactory(students=[student])
     assert guardian in student.guardians.all()
 
 
 @pytest.mark.django_db
 @pytest.mark.models
 def test_guardian_str():
-    guardian = GuardianFactory(full_name='Guardian John Doe')
+    guardian = GuardianFactory(user__first_name='Guardian John', user__last_name='Doe')
     assert str(guardian) == 'Guardian John Doe'
 
 
