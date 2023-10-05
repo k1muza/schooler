@@ -32,7 +32,6 @@ def test_get_by_school_admin_returns_200(school_admin_client):
 @pytest.mark.views
 def test_get_by_student_returns_200(student_client):
     client, student = student_client
-    print(student.id)
     url = reverse('student-detail', args=[student.id])
     response = client.get(url)
     assert response.status_code == status.HTTP_200_OK

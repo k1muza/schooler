@@ -42,7 +42,6 @@ def superuser_client():
 def student_client():
     client = APIClient()
     student = StudentFactory()
-    print(student.id)
     client.force_authenticate(user=student.user)
     return client, student
 

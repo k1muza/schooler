@@ -124,8 +124,8 @@ def test_update_with_other_student_user_returns_409(teacher_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_update_by_unrelated_teacher_returns_403(teacher_client):
-    client, teacher = teacher_client
+def test_student_update_by_unrelated_teacher_returns_404(teacher_client):
+    client, _ = teacher_client
     student: Student = StudentFactory()
     url = reverse("student-detail", args=[student.id])
     updated_data = {
@@ -133,15 +133,15 @@ def test_student_update_by_unrelated_teacher_returns_403(teacher_client):
         "date_of_birth": (timezone.now() - timedelta(weeks=52*8)).strftime("%Y-%m-%d"),
     }
     response = client.put(url, updated_data, format="json")
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_404_NOT_FOUND
     student.refresh_from_db()
     assert student.date_of_birth.strftime("%Y-%m-%d") != updated_data["date_of_birth"]
 
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_update_by_unrelated_school_admin_returns_403(school_admin_client):
-    client, school_admin = school_admin_client
+def test_student_update_by_unrelated_school_admin_returns_404(school_admin_client):
+    client, _ = school_admin_client
     student: Student = StudentFactory()
     url = reverse("student-detail", args=[student.id])
     updated_data = {
@@ -149,7 +149,7 @@ def test_student_update_by_unrelated_school_admin_returns_403(school_admin_clien
         "date_of_birth": (timezone.now() - timedelta(weeks=52*8)).strftime("%Y-%m-%d"),
     }
     response = client.put(url, updated_data, format="json")
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_404_NOT_FOUND
     student.refresh_from_db()
     assert student.date_of_birth.strftime("%Y-%m-%d") != updated_data["date_of_birth"]
 

@@ -103,8 +103,10 @@ class StudentSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        instance = kwargs.get("instance", None)
-        if instance is not None:
+        # if put or patch, then don't require foreign keys
+        request = self.context.get('request', None)
+        if request and request.method in ['PUT', 'PATCH']:
+            self.fields["user_id"].required = False
             self.fields["classroom_id"].required = False
             self.fields["school_id"].required = False
 

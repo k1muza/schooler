@@ -1,21 +1,26 @@
-from urllib.parse import urlencode
 import pytest
+from urllib.parse import urlencode
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from school_management.tests.factories import SchoolFactory
+from school_management.tests.factories import ClassRoomFactory, SchoolFactory
 
 from user_management.tests.factories import StudentFactory
 
-def setup_students_data(school=None):
+def setup_students_data(school=None, classroom=None):
     if not school:
         school = SchoolFactory()
+
+    if not classroom:
+        classroom = ClassRoomFactory(school=school)
 
     StudentFactory(user__first_name="John", user__last_name="Doe")
     StudentFactory(user__first_name="John", user__last_name="Doe", school=school)
     StudentFactory(user__first_name="Jane", user__last_name="Doe", school=school)
-    StudentFactory(user__first_name="Alice", user__username="alice123", school=school)
-    StudentFactory(user__first_name="Bob", user__email="bob@email.com", school=school)
+    StudentFactory(user__first_name="Alice", user__username="alice123", school=school, classroom=classroom)
+    StudentFactory(user__first_name="Bob", user__email="bob@email.com", school=school, classroom=classroom)
+    StudentFactory(user__first_name="Innocent", user__email="my@email.com", school=school, classroom=classroom)
+    StudentFactory(user__first_name="Innocent", user__email="nmy@email.com")
 
 @pytest.mark.django_db
 @pytest.mark.views
@@ -66,12 +71,17 @@ def test_student_search_by_other_school_admin(school_admin_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_search_by_other_teacher(teacher_client):
-    client, _ = teacher_client
-    setup_students_data()
+def test_student_search_by_teacher(teacher_client):
+    client, teacher = teacher_client
+    setup_students_data(classroom=teacher.classrooms.first())
     base_url = reverse('student-search')
-    response = client.get(base_url)
-    assert len(response.data) == 0
+    query_string = urlencode({'search': 'Alice'})
+    response = client.get(f'{base_url}?{query_string}')
+    assert len(response.data) == 1
+
+    query_string = urlencode({'search': 'inno'})
+    response = client.get(f'{base_url}?{query_string}')
+    assert len(response.data) == 1
 
 
 @pytest.mark.django_db

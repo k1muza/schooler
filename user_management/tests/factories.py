@@ -89,7 +89,7 @@ class StudentFactory(Factory):
 
         if extracted:
             for guardian in extracted:
-                self.guardians.add(guardian)
+                guardian.students.add(self)
 
 
 class TeacherFactory(Factory):

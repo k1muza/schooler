@@ -1,3 +1,5 @@
+from django.http import HttpRequest
+from django.views import View
 from rest_framework import permissions
 
 from user_management.models import Student, Teacher
@@ -36,7 +38,7 @@ class IsSchoolAdmin(permissions.BasePermission):
     
 
 class CustomPermission(permissions.BasePermission):
-    def has_permission(self, request, view):        
+    def has_permission(self, request: HttpRequest, view):        
         is_authenticated = request.user and request.user.is_authenticated
 
         if not is_authenticated:
@@ -61,18 +63,59 @@ class CustomPermission(permissions.BasePermission):
             return True
 
         return False
+    
+    def is_student(self, request: HttpRequest, obj):
+        """Check if the user is a student."""
+        if hasattr(request.user, 'student'):
+            return request.user.student == obj
+        return False
+    
+    def is_guardian(self, request: HttpRequest, obj):
+        """Check if the user is a guardian."""
+        if hasattr(request.user, 'guardian'):
+            return request.user.guardian.students.filter(id=obj.id).exists()
+        return False
+    
+    def is_teacher(self, request: HttpRequest, obj):
+        """Check if the user is a teacher."""
+        if hasattr(request.user, 'teacher'):
+            return request.user.teacher.classrooms.filter(id=obj.classroom.id).exists()
+        return False
 
-    def has_object_permission(self, request, view, obj):
-        is_teacher = hasattr(request.user, 'teacher') and obj.teacher == request.user.teacher
-        is_school_admin = hasattr(request.user, 'school_admin') and obj.school == request.user.school_admin.school
-        is_superuser = request.user.is_superuser
+    def is_school_admin(self, request: HttpRequest, obj):
+        """Check if the user is a school admin."""
+        if hasattr(request.user, 'school_admin'):
+            return request.user.school_admin.school.pk == obj.school.pk
+        return False
+    
+    def can_edit(self, request: HttpRequest, obj):
+        """Check if the user has edit or create permissions."""
+        is_teacher = self.is_teacher(request, obj)
+        is_school_admin = self.is_school_admin(request, obj)
+        return is_teacher or is_school_admin
 
-        output = is_teacher or is_school_admin or is_superuser
+    def can_retrieve(self, request: HttpRequest, obj):
+        """Check if the user has retrieve permissions."""
+        is_student = self.is_student(request, obj)
+        is_guardian = self.is_guardian(request, obj)
+        is_teacher = self.is_teacher(request, obj)
+        is_school_admin = self.is_school_admin(request, obj)
+
+        return is_student or is_guardian or is_teacher or is_school_admin
+    
+    def can_delete(self, request: HttpRequest, obj):
+        """Check if the user has delete permissions."""
+        is_school_admin = self.is_school_admin(request, obj)
+        return is_school_admin
+
+    def has_object_permission(self, request: HttpRequest, view, obj):
+        if request.user.is_superuser:
+            return True
+        
+        if view.action in ['destroy']:
+            return self.can_delete(request, obj)
 
         if view.action in ['retrieve']:
-            is_student = hasattr(request.user, 'student') and obj == request.user.student
-            is_guardian = hasattr(request.user, 'guardian') and obj in request.user.guardian.students.all()
-
-            output = output or is_student or is_guardian
-
-        return output
+            return self.can_retrieve(request, obj)
+        
+        return self.can_edit(request, obj)
