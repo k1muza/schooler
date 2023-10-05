@@ -44,7 +44,7 @@ class CustomPermission(permissions.BasePermission):
         if not is_authenticated:
             return False
         
-        if view.action in ['update', 'partial_update', 'retrieve', 'list', 'search']:
+        if view.action in ['update', 'partial_update', 'retrieve', 'list', 'search', 'destroy']:
             return True  # defer to has_object_permission for these actions
 
         if hasattr(request.user, 'teacher'):
@@ -109,6 +109,7 @@ class CustomPermission(permissions.BasePermission):
         return is_school_admin
 
     def has_object_permission(self, request: HttpRequest, view, obj):
+        """Check if the user has permissions for the object."""
         if request.user.is_superuser:
             return True
         
