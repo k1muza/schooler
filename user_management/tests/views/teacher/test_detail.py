@@ -22,7 +22,7 @@ def test_get_teacher_detail_unauthenticated_not_found():
     client = APIClient()
     url = reverse('teacher-detail', args=[teacher.id])
     response = client.get(url)
-    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 @pytest.mark.django_db

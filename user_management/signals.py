@@ -15,9 +15,9 @@ def assign_school_admin_perms(sender, instance: SchoolAdmin, created: bool, **kw
 
         school = instance.school  # Assuming SchoolAdmin has a direct relationship with School
         # Assign object-level permissions related to the School
-        assign_perm('change_school', instance.user, school)
-        assign_perm('delete_school', instance.user, school)
-        assign_perm('view_school', instance.user, school)
+        assign_perm('user_management.change_school', instance.user, school)
+        assign_perm('user_management.delete_school', instance.user, school)
+        assign_perm('user_management.view_school', instance.user, school)
 
         # For managing Teachers specifically at their school
         for teacher in Teacher.objects.filter(school=school):
@@ -27,11 +27,11 @@ def assign_school_admin_perms(sender, instance: SchoolAdmin, created: bool, **kw
 
 
 @receiver(post_save, sender=Teacher)
-def assign_teacher_perms(sender, instance, created, **kwargs):
+def assign_teacher_perms(sender, instance: Teacher, created: bool, **kwargs):
     if created:
         # Assign permissions for self-management
-        assign_perm('change_teacher', instance.user, instance)
-        assign_perm('view_teacher', instance.user, instance)
+        assign_perm('user_management.change_teacher', instance.user, instance)
+        assign_perm('user_management.view_teacher', instance.user, instance)
 
         for admin in SchoolAdmin.objects.filter(school=instance.school):
             assign_perm('user_management.change_teacher', admin.user, instance)
