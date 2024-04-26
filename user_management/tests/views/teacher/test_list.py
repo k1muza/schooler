@@ -18,8 +18,7 @@ def test_get_teacher_list_authenticated(user_client):
     response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
 
-    teachers = Teacher.objects.all()
-    serializer = TeacherSerializer(teachers, many=True)
+    serializer = TeacherSerializer(Teacher.objects.none(), many=True)
     assert response.data == serializer.data
 
 

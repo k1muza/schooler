@@ -133,6 +133,21 @@ def test_student_create_without_school_id(superuser_client, generic_user_data):
 
 @pytest.mark.django_db
 @pytest.mark.views
+def test_student_create_with_invalid_school_id(superuser_client, generic_user_data):
+    client, _ = superuser_client
+    data = {
+        'user': generic_user_data,
+        'school_id': 9999999,
+        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
+    }
+    url = reverse('student-list')
+    response = client.post(url, data, format="json")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert Student.objects.count() == 0
+
+
+@pytest.mark.django_db
+@pytest.mark.views
 def test_student_create_without_classroom_id(superuser_client, generic_user_data):
     client, _ = superuser_client
     classroom = ClassRoomFactory()

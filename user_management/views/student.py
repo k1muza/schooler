@@ -1,16 +1,18 @@
-from rest_framework.response import Response
 from django.db.models import Q
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework import viewsets, status, serializers
+from rest_framework.response import Response
 
-from user_management.permissions import CustomPermission
+from user_management.permissions import HasStudentPermission
+
 from ..models import Student, User
 from ..serializers import StudentSerializer
+
 
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
-    permission_classes = [CustomPermission]
+    permission_classes = [HasStudentPermission]
 
     def get_queryset(self):
         user = self.request.user
@@ -46,11 +48,6 @@ class StudentViewSet(viewsets.ModelViewSet):
             raise e
         except User.DoesNotExist:
             return Response(f'User with id {request.data.get("user_id")} does not exist.', status=status.HTTP_404_NOT_FOUND)
-
-    def perform_create(self, serializer: StudentSerializer):
-        if serializer.is_valid():
-            student_instance = serializer.save()
-            student_instance.assign_permissions()  
     
     @action(detail=False, methods=['GET'])
     def search(self, request):

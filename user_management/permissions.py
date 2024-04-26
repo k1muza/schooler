@@ -1,6 +1,7 @@
+from django.db import models
 from django.http import HttpRequest
-from django.views import View
 from rest_framework import permissions
+from django.views import generic
 
 from user_management.models import Student, Teacher
 
@@ -24,20 +25,36 @@ class IsTeacherOfStudent(permissions.BasePermission):
         return obj.teacher == teacher
     
 
-class IsSchoolAdmin(permissions.BasePermission):
-    def has_permission(self, request, view):
-        if hasattr(request.user, 'school_admin'):
-            return request.user.school_admin.school.pk == request.data.get('school_id', None)
-        return False
-    
-    def has_object_permission(self, request, view, obj: Student):
-        if not hasattr(request.user, 'school_admin'):
+class HasTeacherPermission(permissions.BasePermission):
+    def has_permission(self, request: HttpRequest, view: generic.View):
+        # Basic permission check for authenticated users
+        if not (request.user and request.user.is_authenticated):
             return False
         
-        return obj.school == request.user.school_admin.school
+        if request.user.is_superuser:
+            return True
+
+        # Check for specific object permissions depending on the request method
+        if request.method == 'POST':
+            return request.user.has_perm('user_management.add_teacher')
+        
+        return True
+    
+    def has_object_permission(self, request: HttpRequest, view: generic.View, obj: models.Model):
+        if request.user.is_superuser:
+            return True
+        
+        # Check for specific object permissions depending on the request method
+        if request.method in permissions.SAFE_METHODS:
+            return request.user.has_perm('user_management.view_teacher', obj)
+        elif request.method in ['PUT', 'PATCH']:
+            return request.user.has_perm('user_management.change_teacher', obj)
+        elif request.method == 'DELETE':
+            return request.user.has_perm('user_management.delete_teacher', obj)
+        return False
     
 
-class CustomPermission(permissions.BasePermission):
+class HasStudentPermission(permissions.BasePermission):
     def has_permission(self, request: HttpRequest, view):        
         is_authenticated = request.user and request.user.is_authenticated
 

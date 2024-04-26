@@ -3,12 +3,11 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.query import QuerySet
 from reversion.models import Version
-from guardian.shortcuts import assign_perm
 
 from core.models import TimeStampedModel
 
 
-@reversion.register
+@reversion.register()
 class User(AbstractUser, TimeStampedModel):
     class Gender(models.TextChoices):
         MALE = "male"
@@ -22,7 +21,7 @@ class User(AbstractUser, TimeStampedModel):
         return self.get_full_name() or self.username
 
 
-@reversion.register
+@reversion.register()
 class UserImage(models.Model):
     image = models.ImageField(upload_to="images/users")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="images")
@@ -39,7 +38,7 @@ class UserImage(models.Model):
         )
 
 
-@reversion.register
+@reversion.register()
 class UserContact(models.Model):
     class ContactType(models.TextChoices):
         PHONE = "phone"
@@ -56,7 +55,7 @@ class UserContact(models.Model):
         return self.contact_type + " - " + self.contact
 
 
-@reversion.register
+@reversion.register()
 class Teacher(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     school = models.ForeignKey("school_management.School", on_delete=models.CASCADE)
@@ -67,7 +66,7 @@ class Teacher(TimeStampedModel):
         return self.user.get_full_name() or self.user.username
 
 
-@reversion.register
+@reversion.register()
 class Guardian(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     students = models.ManyToManyField("Student")
@@ -77,7 +76,7 @@ class Guardian(TimeStampedModel):
         return self.user.get_full_name() or self.user.username
 
 
-@reversion.register
+@reversion.register()
 class Student(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     classroom = models.ForeignKey(
@@ -106,17 +105,8 @@ class Student(TimeStampedModel):
         with reversion.create_revision():
             super(Student, self).save(*args, **kwargs)
 
-    def assign_permissions(self):
-        assign_perm("change_student", self.teacher.user, self)
-        assign_perm("view_student", self.teacher.user, self)
 
-        for school_admin in SchoolAdmin.objects.filter(school=self.school):
-            assign_perm("change_student", school_admin.user, self)
-            assign_perm("view_student", school_admin.user, self)
-            assign_perm("delete_student", school_admin.user, self)
-
-
-@reversion.register
+@reversion.register()
 class SchoolAdmin(TimeStampedModel):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="school_admin"
@@ -129,7 +119,7 @@ class SchoolAdmin(TimeStampedModel):
         )
 
 
-@reversion.register
+@reversion.register()
 class Enrolment(TimeStampedModel):
     class Status(models.TextChoices):
         ENROLLED = "enrolled"

@@ -39,13 +39,57 @@ class CustomUserSerializer(UserSerializer):
 
 class TeacherSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
-    user = CustomUserSerializer(required=False)
+    user = UserSerializer(required=False)
     school = SchoolSerializer(read_only=True)
     school_id = serializers.IntegerField(
         write_only=True,
         required=True,
         error_messages={"required": "school_id is required."},
     )
+    user_id = serializers.IntegerField(write_only=True, required=False)
+
+    def validate_user_id(self, value):
+        if self.instance and self.instance.user_id == value:
+            return value  # Allow unchanged user_id on updates
+        if Teacher.objects.filter(user_id=value).exists():
+            raise serializers.ValidationError("Teacher with user_id already exists")
+        return value
+
+    def is_valid(self, raise_exception=False):
+        is_base_valid = super().is_valid(raise_exception=raise_exception)
+
+        if not is_base_valid and raise_exception:
+            raise serializers.ValidationError(self.errors)
+        
+        # Generalized foreign key validation
+        for field in Teacher._meta.fields:
+            if isinstance(field, ForeignKey):
+                fk_field_name = f"{field.name}_id"  # Construct the name of the FK field in the serializer
+                fk_id = self.initial_data.get(fk_field_name, None)
+                if fk_id is not None:
+                    try:
+                        field.related_model.objects.get(id=fk_id)
+                    except ObjectDoesNotExist:
+                        self._errors[fk_field_name] = [f"{field.related_model.__name__} with id {fk_id} does not exist."]
+
+        if "user" in self.initial_data and "user_id" in self.initial_data:
+            self._errors["user_and_user_id"] = ["user and user_id cannot be passed together."]  
+
+        # check for unsupported fields
+        unsupported_fields = [
+            field
+            for field in self.initial_data.keys()
+            if field not in self.fields.keys()
+        ]
+        if unsupported_fields:
+            self._errors["unsupported_fields"] = [f"Unsupported teacher fields: {', '.join(unsupported_fields)}"]      
+        
+        is_valid = not bool(self._errors)
+
+        if self._errors and raise_exception:
+            raise serializers.ValidationError(self.errors)
+
+        return is_valid
 
     class Meta:
         model = Teacher
