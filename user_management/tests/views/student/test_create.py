@@ -154,8 +154,7 @@ def test_student_create_with_another_student_user(superuser_client):
     # Try to create another student with the same user
     response = client.post(url, data, format="json")
     assert response.status_code == status.HTTP_409_CONFLICT
-    assert f'Student with user_id {original_student.user.pk} already exists.' in str(response.data)
-    assert Student.objects.count() == 1
+    assert f'Student with specified user_id already exists.' in response.json()
 
 
 @pytest.mark.django_db

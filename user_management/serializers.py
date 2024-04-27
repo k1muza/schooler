@@ -148,18 +148,32 @@ class StudentSerializer(serializers.ModelSerializer):
             self.fields["user_id"].required = False
             self.fields["school_id"].required = False
 
+    def validate_user_id(self, value):
+        if self.instance and self.instance.user_id == value:
+            return value  # Allow unchanged user_id on updates
+        if Student.objects.filter(user_id=value).exists():
+            raise serializers.ValidationError("Student with specified user_id already exists.")
+        return value
+
     def is_valid(self, raise_exception=False):
         is_base_valid = super().is_valid(raise_exception=raise_exception)
 
         if not is_base_valid and raise_exception:
             raise serializers.ValidationError(self.errors)
 
-        if "user" in self.initial_data and "user_id" in self.initial_data:
-            self._errors["user_and_user_id"] = ["user and user_id cannot be passed together."]
+        # Generalized foreign key validation
+        for field in Student._meta.fields:
+            if isinstance(field, ForeignKey):
+                fk_field_name = f"{field.name}_id"  # Construct the name of the FK field in the serializer
+                fk_id = self.initial_data.get(fk_field_name, None)
+                if fk_id is not None:
+                    try:
+                        field.related_model.objects.get(id=fk_id)
+                    except ObjectDoesNotExist:
+                        self._errors[fk_field_name] = [f"{field.related_model.__name__} with id {fk_id} does not exist."]
         
-        if "user_id" in self.initial_data:
-            if Student.objects.filter(user_id=self.initial_data["user_id"]).exists():
-                self._errors["user_id"] = [f'Student with user_id {self.initial_data["user_id"]} already exists.']     
+        if "user" in self.initial_data and "user_id" in self.initial_data:
+            self._errors["user_and_user_id"] = ["user and user_id cannot be passed together."]   
 
         # check for unsupported fields
         unsupported_fields = [

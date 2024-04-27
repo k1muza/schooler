@@ -86,4 +86,5 @@ def assign_student_perms(sender, instance: Class, action, reverse, model, pk_set
         for student in instance.students.all():
             assign_perm('user_management.view_student', student.user, student)
             assign_perm('user_management.view_student', instance.teacher.user, student)
+            assign_perm('user_management.change_student', instance.teacher.user, student)
             assign_perm('user_management.view_teacher', student.user, instance.teacher)

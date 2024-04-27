@@ -1,6 +1,5 @@
 import pytest
 from django.contrib import admin
-from school_management.tests.factories import ClassFactory
 from user_management.models import Student
 from user_management.tests.factories import StudentFactory, UserFactory
 

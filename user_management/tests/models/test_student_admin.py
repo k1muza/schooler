@@ -1,5 +1,4 @@
 import pytest
-from curriculum_management.tests.factories import SubjectFactory
 from django.contrib import admin
 from school_management.tests.factories import SchoolFactory
 from user_management.models import SchoolAdmin

@@ -50,6 +50,7 @@ class StudentViewSet(viewsets.ModelViewSet):
             return super().update(request, *args, **kwargs)
         except serializers.ValidationError as e:
             if 'already exists' in str(e):
+                print(str(e))
                 return Response(str(e), status=status.HTTP_409_CONFLICT)
             if 'does not exist' in str(e):
                 return Response(str(e), status=status.HTTP_404_NOT_FOUND)

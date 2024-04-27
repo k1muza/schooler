@@ -4,7 +4,6 @@ from rest_framework import permissions
 from django.views import generic
 
 from school_management.models import School
-from user_management.models import Student, Teacher
 
 
 class IsSuperUser(permissions.BasePermission):
