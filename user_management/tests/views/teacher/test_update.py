@@ -26,8 +26,8 @@ def test_teacher_update_by_superuser_200(superuser_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_update_by_school_admin_200(school_admin_client):
-    client, school_admin = school_admin_client
+def test_teacher_update_by_school_admin_200(schooladmin_client):
+    client, school_admin = schooladmin_client
     teacher = TeacherFactory(school=school_admin.school)
 
     url = reverse("teacher-detail", args=[teacher.id])
@@ -65,7 +65,7 @@ def test_teacher_update_by_teacher_200(teacher_client):
 @pytest.mark.django_db
 @pytest.mark.views
 @pytest.mark.parametrize("client_fixture, expected_status", [
-    ('school_admin_client', status.HTTP_404_NOT_FOUND),
+    ('schooladmin_client', status.HTTP_404_NOT_FOUND),
     ('teacher_client', status.HTTP_404_NOT_FOUND),
     ('student_client', status.HTTP_404_NOT_FOUND),
     ('guardian_client', status.HTTP_404_NOT_FOUND),

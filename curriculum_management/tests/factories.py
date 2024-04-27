@@ -5,7 +5,7 @@ from factory import SubFactory, Faker
 from factory.django import DjangoModelFactory
 from assessment_management.tests.factories import ExerciseSubmissionFactory
 from curriculum_management.models import (Exam, Exercise, Subject, Syllabus, Term)
-from school_management.tests.factories import ClassRoomFactory
+from school_management.tests.factories import ClassFactory
 from user_management.tests.factories import TeacherFactory
 
 
@@ -51,7 +51,7 @@ class ExerciseFactory(DjangoModelFactory):
         skip_postgeneration_save = True
 
     subject = SubFactory(SubjectFactory)
-    classroom = SubFactory(ClassRoomFactory)
+    klass = SubFactory(ClassFactory)
     prepared_by = SubFactory(TeacherFactory)
     title = Faker("word")
     content = Faker("text")

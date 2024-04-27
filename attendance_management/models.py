@@ -7,9 +7,9 @@ class ClassAttendance(models.Model):
         ABSENT = 'Absent'
 
     student = models.ForeignKey('user_management.Student', on_delete=models.CASCADE)
-    classroom = models.ForeignKey('school_management.ClassRoom', on_delete=models.CASCADE)
+    klass = models.ForeignKey('school_management.Class', on_delete=models.CASCADE)
     attendance_date = models.DateField()
     status = models.CharField(max_length=7, choices=Status.choices, default=Status.PRESENT)
 
     def __str__(self):
-        return f'{self.student} - {self.classroom} - {self.attendance_date}'
+        return f'{self.student} - {self.klass} - {self.attendance_date}'

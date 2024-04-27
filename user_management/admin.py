@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from user_management.models import Enrolment, Guardian, Student, Teacher, User, UserContact, SchoolAdmin
+from user_management.models import Guardian, Student, Teacher, User, UserContact, SchoolAdmin
 
 
 @admin.register(User)
@@ -20,11 +20,6 @@ class TeacherAdmin(admin.ModelAdmin):
 
 @admin.register(Guardian)
 class GuardianAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Enrolment)
-class EnrolmentAdmin(admin.ModelAdmin):
     pass
 
 

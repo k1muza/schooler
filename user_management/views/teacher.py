@@ -26,7 +26,9 @@ class TeacherViewSet(viewsets.ModelViewSet):
             'change_teacher',
             'delete_teacher',
         ]
-        return get_objects_for_user(self.request.user, perms, klass=self.queryset, accept_global_perms=False, any_perm=True)
+        queryset = get_objects_for_user(
+            self.request.user, perms, klass=self.queryset, accept_global_perms=False, any_perm=True)
+        return queryset
 
     def create(self, request: HttpRequest, *args, **kwargs):         
         if request.user.is_superuser:

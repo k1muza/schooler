@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from school_management.models import ClassRoom, Level, School
+from school_management.models import Class, Level, School
 
 
 @admin.register(School)
@@ -13,6 +13,6 @@ class LevelAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(ClassRoom)
-class ClassRoomAdmin(admin.ModelAdmin):
+@admin.register(Class)
+class ClassAdmin(admin.ModelAdmin):
     pass

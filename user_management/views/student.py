@@ -1,8 +1,10 @@
 from django.db.models import Q
+from guardian.shortcuts import get_objects_for_user
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from school_management.models import School
 from user_management.permissions import HasStudentPermission
 
 from ..models import Student, User
@@ -15,18 +17,24 @@ class StudentViewSet(viewsets.ModelViewSet):
     permission_classes = [HasStudentPermission]
 
     def get_queryset(self):
-        user = self.request.user
-        if hasattr(user, 'teacher'):
-            return Student.objects.filter(classroom__in=user.teacher.classrooms.all())
-        if hasattr(user, 'school_admin'):
-            return Student.objects.filter(school=user.school_admin.school)
-        if hasattr(user, 'guardian'):
-            return user.guardian.students.all()
-        if hasattr(user, 'student'):
-            return Student.objects.filter(id=user.student.id)
-        return Student.objects.all()
+        if self.request.user.is_superuser:
+            return self.queryset
+        perms = [
+            'view_student',
+            'change_student',
+            'delete_student',
+        ]
+        queryset = get_objects_for_user(
+            self.request.user, perms, klass=self.queryset, accept_global_perms=False, any_perm=True)
+        return queryset
 
     def create(self, request, *args, **kwargs):
+        if not request.data.get('school_id'):
+            return Response('No school_id specified.', status=status.HTTP_400_BAD_REQUEST)
+        
+        if not School.objects.filter(id=request.data.get('school_id')).exists():
+            return Response(f'School with id {request.data.get("school_id")} does not exist.', status=status.HTTP_404_NOT_FOUND)
+            
         serializer: StudentSerializer = self.get_serializer(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)

@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
-from school_management.tests.factories import ClassRoomFactory
+from school_management.tests.factories import ClassFactory, SchoolFactory
 
 from user_management.models import Student
 from user_management.tests.factories import StudentFactory, UserFactory
@@ -22,11 +22,10 @@ def generic_user_data():
 
 @pytest.fixture
 def generic_data(generic_user_data):
-    classroom = ClassRoomFactory()
+    klass = ClassFactory()
     return {
         'user': generic_user_data,
-        'classroom_id': classroom.pk,
-        'school_id': classroom.school.pk,
+        'school_id': klass.school.pk,
         'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
 
@@ -34,13 +33,12 @@ def generic_data(generic_user_data):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_create_by_class_teacher_returns_201(teacher_client, generic_user_data):
+def test_student_create_by_class_teacher(teacher_client, generic_user_data):
     client, teacher = teacher_client
-    classroom = ClassRoomFactory(teacher=teacher, school=teacher.school)
+    klass = ClassFactory(teacher=teacher, school=teacher.school)
     data = {
         'user': generic_user_data,
-        'classroom_id': classroom.pk,
-        'school_id': classroom.school.pk,
+        'school_id': klass.school.pk,
         'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
@@ -54,13 +52,11 @@ def test_student_create_by_class_teacher_returns_201(teacher_client, generic_use
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_create_by_school_admin_returns_201(school_admin_client, generic_user_data):
-    client, school_admin = school_admin_client
+def test_student_create_by_school_admin(schooladmin_client, generic_user_data):
+    client, school_admin = schooladmin_client
     school = school_admin.school
-    classroom = ClassRoomFactory(school=school)
     data = {
         'user': generic_user_data,
-        'classroom_id': classroom.pk,
         'school_id': school.pk,
         'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
@@ -75,13 +71,12 @@ def test_student_create_by_school_admin_returns_201(school_admin_client, generic
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_create_by_superuser_returns_201(superuser_client, generic_user_data):
+def test_student_create_by_superuser(superuser_client, generic_user_data):
     client, _ = superuser_client
-    classroom = ClassRoomFactory()
+    school = SchoolFactory()
     data = {
         'user': generic_user_data,
-        'classroom_id': classroom.pk,
-        'school_id': classroom.school.pk,
+        'school_id': school.pk,
         'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
@@ -97,11 +92,10 @@ def test_student_create_by_superuser_returns_201(superuser_client, generic_user_
 @pytest.mark.views
 def test_student_create_adds_revision(superuser_client, generic_user_data):
     client, _ = superuser_client
-    classroom = ClassRoomFactory()
+    klass = ClassFactory()
     data = {
         'user': generic_user_data,
-        'classroom_id': classroom.pk,
-        'school_id': classroom.school.pk,
+        'school_id': klass.school.pk,
         'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
@@ -118,16 +112,14 @@ def test_student_create_adds_revision(superuser_client, generic_user_data):
 @pytest.mark.views
 def test_student_create_without_school_id(superuser_client, generic_user_data):
     client, _ = superuser_client
-    classroom = ClassRoomFactory()
     data = {
         'user': generic_user_data,
-        'classroom_id': classroom.pk,
         'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     response = client.post(url, data, format="json")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert 'school_id is required.' in str(response.data)
+    assert 'No school_id specified.' in str(response.data)
     assert Student.objects.count() == 0
 
 
@@ -142,24 +134,8 @@ def test_student_create_with_invalid_school_id(superuser_client, generic_user_da
     }
     url = reverse('student-list')
     response = client.post(url, data, format="json")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert Student.objects.count() == 0
-
-
-@pytest.mark.django_db
-@pytest.mark.views
-def test_student_create_without_classroom_id(superuser_client, generic_user_data):
-    client, _ = superuser_client
-    classroom = ClassRoomFactory()
-    data = {
-        'user': generic_user_data,
-        'school_id': classroom.school.pk,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
-    }
-    url = reverse('student-list')
-    response = client.post(url, data, format="json")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert 'classroom_id is required.' in str(response.data)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert 'School with id 9999999 does not exist.' in str(response.data)
     assert Student.objects.count() == 0
 
 
@@ -167,12 +143,11 @@ def test_student_create_without_classroom_id(superuser_client, generic_user_data
 @pytest.mark.views
 def test_student_create_with_another_student_user(superuser_client):
     client, _ = superuser_client
-    classroom = ClassRoomFactory()
+    school = SchoolFactory()
     original_student = StudentFactory()
     data = {
         'user_id': original_student.user.pk,
-        'classroom_id': classroom.pk,
-        'school_id': classroom.school.pk,
+        'school_id': school.pk,
         'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
@@ -187,10 +162,9 @@ def test_student_create_with_another_student_user(superuser_client):
 @pytest.mark.views
 def test_create_student_without_user_id_returns_400(superuser_client):
     client, _ = superuser_client
-    classroom = ClassRoomFactory()
+    school = SchoolFactory()
     data = {
-        'classroom_id': classroom.pk,
-        'school_id': classroom.school.pk,
+        'school_id': school.pk,
         'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
@@ -205,13 +179,12 @@ def test_create_student_without_user_id_returns_400(superuser_client):
 @pytest.mark.views
 def test_create_invalid_student_returns_400(superuser_client):
     client, _ = superuser_client
-    classroom = ClassRoomFactory()
+    school = SchoolFactory()
     user = UserFactory()
     data = {
         'user_id': user.pk,
         'invalid_field': 'invalid_value',
-        'classroom_id': classroom.pk,
-        'school_id': classroom.school.pk,
+        'school_id': school.pk,
         'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
@@ -245,13 +218,11 @@ def test_create_by_unauthenticated_user_returns_401(generic_data):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_create_by_unrelated_teacher_returns_403(teacher_client, generic_user_data):
-    client, teacher = teacher_client
-    classroom = ClassRoomFactory(school=teacher.school) # teacher is not assigned to this classroom
+def test_student_create_by_teacher_from_different_school(teacher_client, generic_user_data):
+    client, _ = teacher_client
     data = {
         'user': generic_user_data,
-        'classroom_id': classroom.pk,
-        'school_id': classroom.school.pk,
+        'school_id': SchoolFactory().pk,
         'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
@@ -262,17 +233,16 @@ def test_student_create_by_unrelated_teacher_returns_403(teacher_client, generic
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_create_by_unrelated_school_admin_returns_403(school_admin_client, generic_user_data):
-    client, school_admin = school_admin_client
-    classroom = ClassRoomFactory() # teacher is not assigned to this classroom
+def test_student_create_by_unrelated_school_admin_returns_403(schooladmin_client, generic_user_data):
+    client, school_admin = schooladmin_client
+    school = SchoolFactory()
     data = {
         'user': generic_user_data,
-        'classroom_id': classroom.pk,
-        'school_id': classroom.school.pk,
+        'school_id': school.pk,
         'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     response = client.post(url, data, format="json")
-    assert school_admin.school != classroom.school
+    assert school_admin.school != school
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert Student.objects.count() == 0

@@ -15,10 +15,11 @@ class Level(TimeStampedModel):
     def __str__(self):
         return self.name
 
-class ClassRoom(TimeStampedModel):
-    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='classrooms')
-    level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name='classrooms')
-    teacher = models.ForeignKey('user_management.Teacher', on_delete=models.CASCADE, related_name='classrooms')
+class Class(TimeStampedModel):
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='classes')
+    level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name='classes')
+    teacher = models.ForeignKey('user_management.Teacher', on_delete=models.CASCADE, related_name='classes')
+    students = models.ManyToManyField('user_management.Student', related_name='classes')
     name = models.CharField(max_length=255)
 
     def __str__(self):

@@ -1,7 +1,7 @@
 from factory import SubFactory
 from factory.django import DjangoModelFactory as Factory
 from faker import Faker
-from ..models import School, Level, ClassRoom
+from ..models import School, Level, Class
 
 fake = Faker()
 
@@ -19,9 +19,9 @@ class LevelFactory(Factory):
     name = fake.word()
 
 
-class ClassRoomFactory(Factory):
+class ClassFactory(Factory):
     class Meta:
-        model = ClassRoom
+        model = Class
 
     name = fake.word()
     level = SubFactory(LevelFactory)

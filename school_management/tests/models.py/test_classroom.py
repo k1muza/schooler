@@ -1,45 +1,45 @@
 import pytest
 from django.contrib import admin
-from school_management.models import ClassRoom
-from school_management.tests.factories import ClassRoomFactory
+from school_management.models import Class
+from school_management.tests.factories import ClassFactory
 
 
 @pytest.mark.django_db
 @pytest.mark.models
-def test_create_classroom():
-    ClassRoomFactory()
-    assert ClassRoom.objects.count() == 1
+def test_create_class():
+    ClassFactory()
+    assert Class.objects.count() == 1
 
 @pytest.mark.django_db
 @pytest.mark.models
-def test_read_classroom():
-    classroom = ClassRoomFactory()
-    retrieved_classroom = ClassRoom.objects.get(pk=classroom.pk)
-    assert retrieved_classroom == classroom
+def test_read_class():
+    klass = ClassFactory()
+    retrieved_class = Class.objects.get(pk=klass.pk)
+    assert retrieved_class == klass
 
 @pytest.mark.django_db
 @pytest.mark.models
-def test_update_classroom():
-    classroom = ClassRoomFactory()
-    new_name = "New Classroom Name"
-    classroom.name = new_name
-    classroom.save()
-    retrieved_classroom = ClassRoom.objects.get(pk=classroom.pk)
-    assert retrieved_classroom.name == new_name
+def test_update_class():
+    klass = ClassFactory()
+    new_name = "New class Name"
+    klass.name = new_name
+    klass.save()
+    retrieved_class = Class.objects.get(pk=klass.pk)
+    assert retrieved_class.name == new_name
 
 @pytest.mark.django_db
 @pytest.mark.models
-def test_delete_classroom():
-    classroom = ClassRoomFactory()
-    classroom.delete()
-    assert ClassRoom.objects.count() == 0
+def test_delete_class():
+    klass = ClassFactory()
+    klass.delete()
+    assert Class.objects.count() == 0
 
 @pytest.mark.django_db
 @pytest.mark.models
-def test_classroom_str():
-    classroom = ClassRoomFactory()
-    assert str(classroom) == classroom.name + ' - ' + classroom.level.name + ' - ' + classroom.school.name
+def test_class_str():
+    klass = ClassFactory()
+    assert str(klass) == klass.name + ' - ' + klass.level.name + ' - ' + klass.school.name
 
 @pytest.mark.models
-def test_classroom_admin_registration():
-    assert admin.site._registry.get(ClassRoom) is not None, 'ClassRoom is not registered in the admin site'
+def test_class_admin_registration():
+    assert admin.site._registry.get(Class) is not None, 'Class is not registered in the admin site'

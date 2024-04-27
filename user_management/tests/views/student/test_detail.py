@@ -2,6 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
+from school_management.tests.factories import ClassFactory
 from user_management.tests.factories import StudentFactory
 
 
@@ -10,9 +11,11 @@ from user_management.tests.factories import StudentFactory
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_by_class_teacher_returns_200(teacher_client):
+def test_get_student_by_class_teacher(teacher_client):
     client, teacher = teacher_client
-    student = StudentFactory(classroom=teacher.classrooms.first())
+    student = StudentFactory(school=teacher.school)
+    klass = ClassFactory(teacher=teacher)
+    klass.students.add(student)
     url = reverse('student-detail', args=[student.id])
     response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
@@ -20,8 +23,8 @@ def test_get_by_class_teacher_returns_200(teacher_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_by_school_admin_returns_200(school_admin_client):
-    client, admin = school_admin_client
+def test_get_student_by_schooladmin(schooladmin_client):
+    client, admin = schooladmin_client
     student = StudentFactory(school=admin.school)
     url = reverse('student-detail', args=[student.id])
     response = client.get(url)
@@ -30,7 +33,7 @@ def test_get_by_school_admin_returns_200(school_admin_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_by_student_returns_200(student_client):
+def test_get_student_by_self(student_client):
     client, student = student_client
     url = reverse('student-detail', args=[student.id])
     response = client.get(url)
@@ -49,70 +52,36 @@ def test_get_by_guardian_returns_200(guardian_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_student_detail_by_super_user(superuser_client):
+def test_get_student_by_super_user(superuser_client):
     client, _ = superuser_client
     student = StudentFactory()
     url = reverse('student-detail', args=[student.id])
     response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
 
-######################### Exceptional path tests #########################
+
+@pytest.mark.parametrize("client_fixture, expected_status", [
+    ('schooladmin_client', status.HTTP_404_NOT_FOUND),
+    ('teacher_client', status.HTTP_404_NOT_FOUND),
+    ('student_client', status.HTTP_404_NOT_FOUND),
+    ('guardian_client', status.HTTP_404_NOT_FOUND),
+    ('user_client', status.HTTP_404_NOT_FOUND),
+])
+@pytest.mark.django_db
+@pytest.mark.views
+def test_get_student_by_other_class_teacher_404(request, client_fixture, expected_status):
+    client, _ = request.getfixturevalue(client_fixture)
+    student = StudentFactory()
+    url = reverse('student-detail', args=[student.id])
+    response = client.get(url)
+    assert response.status_code == expected_status
+
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_student_detail_unauthenticated_401():
+def test_get_student_unauthenticated_401():
     student = StudentFactory()
     client = APIClient()
     url = reverse('student-detail', args=[student.id])
     response = client.get(url)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-
-@pytest.mark.django_db
-@pytest.mark.views
-def test_get_student_detail_by_other_class_teacher_404(teacher_client):
-    client, _ = teacher_client
-    student = StudentFactory()
-    url = reverse('student-detail', args=[student.id])
-    response = client.get(url)
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-
-
-@pytest.mark.django_db
-@pytest.mark.views
-def test_get_student_detail_by_other_school_admin_404(school_admin_client):
-    client, _ = school_admin_client
-    student = StudentFactory()
-    url = reverse('student-detail', args=[student.id])
-    response = client.get(url)
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-
-
-@pytest.mark.django_db
-@pytest.mark.views
-def test_get_student_detail_by_other_student_404(student_client):
-    client, _ = student_client
-    student = StudentFactory()
-    url = reverse('student-detail', args=[student.id])
-    response = client.get(url)
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-
-
-@pytest.mark.django_db
-@pytest.mark.views
-def test_get_student_detail_by_other_guardian_404(guardian_client):
-    client, _ = guardian_client
-    student = StudentFactory()
-    url = reverse('student-detail', args=[student.id])
-    response = client.get(url)
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-
-
-@pytest.mark.django_db
-@pytest.mark.views
-def test_get_student_detail_by_other_user_403(user_client):
-    client, _ = user_client
-    student = StudentFactory()
-    url = reverse('student-detail', args=[student.id])
-    response = client.get(url)
-    assert response.status_code == status.HTTP_403_FORBIDDEN

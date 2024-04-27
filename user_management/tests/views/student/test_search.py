@@ -3,29 +3,32 @@ from urllib.parse import urlencode
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from school_management.tests.factories import ClassRoomFactory, SchoolFactory
+from school_management.tests.factories import ClassFactory, SchoolFactory
 
 from user_management.tests.factories import StudentFactory
 
-def setup_students_data(school=None, classroom=None):
+def setup_students_data(school=None, klass=None):
     if not school:
         school = SchoolFactory()
 
-    if not classroom:
-        classroom = ClassRoomFactory(school=school)
+    if not klass:
+        klass = ClassFactory(school=school)
 
     StudentFactory(user__first_name="John", user__last_name="Doe")
     StudentFactory(user__first_name="John", user__last_name="Doe", school=school)
     StudentFactory(user__first_name="Jane", user__last_name="Doe", school=school)
-    StudentFactory(user__first_name="Alice", user__username="alice123", school=school, classroom=classroom)
-    StudentFactory(user__first_name="Bob", user__email="bob@email.com", school=school, classroom=classroom)
-    StudentFactory(user__first_name="Innocent", user__email="my@email.com", school=school, classroom=classroom)
     StudentFactory(user__first_name="Innocent", user__email="nmy@email.com")
+
+    alice = StudentFactory(user__first_name="Alice", user__username="alice123", school=school)
+    bob = StudentFactory(user__first_name="Bob", user__email="bob@email.com", school=school)
+    ino = StudentFactory(user__first_name="Innocent", user__email="ino@email.com", school=school)
+
+    klass.students.add(alice, bob, ino)
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_search_by_school_admin(school_admin_client):
-    client, schooladmin = school_admin_client
+def test_student_search_by_school_admin(schooladmin_client):
+    client, schooladmin = schooladmin_client
     
     setup_students_data(school=schooladmin.school)
 
@@ -61,8 +64,8 @@ def test_student_search_by_school_admin(school_admin_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_search_by_other_school_admin(school_admin_client):
-    client, _ = school_admin_client
+def test_student_search_by_other_school_admin(schooladmin_client):
+    client, _ = schooladmin_client
     setup_students_data()
     base_url = reverse('student-search')
     response = client.get(base_url)
@@ -73,7 +76,7 @@ def test_student_search_by_other_school_admin(school_admin_client):
 @pytest.mark.views
 def test_student_search_by_teacher(teacher_client):
     client, teacher = teacher_client
-    setup_students_data(classroom=teacher.classrooms.first())
+    setup_students_data(klass=ClassFactory(teacher=teacher))
     base_url = reverse('student-search')
     query_string = urlencode({'search': 'Alice'})
     response = client.get(f'{base_url}?{query_string}')

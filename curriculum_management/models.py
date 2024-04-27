@@ -41,7 +41,7 @@ class Syllabus(TimeStampedModel):
 
 class Exercise(TimeStampedModel):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    classroom = models.ForeignKey('school_management.ClassRoom', on_delete=models.CASCADE)
+    klass = models.ForeignKey('school_management.Class', on_delete=models.CASCADE)
     taken_by = models.ManyToManyField('user_management.Student', through='assessment_management.ExerciseSubmission')
     prepared_by = models.ForeignKey('user_management.Teacher', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)

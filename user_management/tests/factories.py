@@ -5,7 +5,6 @@ from factory import SubFactory, Sequence
 from factory.django import DjangoModelFactory as Factory
 from user_management.models import Teacher
 from ..models import (
-    Enrolment,
     User,
     Guardian,
     Student,
@@ -78,7 +77,6 @@ class StudentFactory(Factory):
         skip_postgeneration_save=True
 
     user = SubFactory(UserFactory)
-    classroom = SubFactory('school_management.tests.factories.ClassRoomFactory')
     school = SubFactory('school_management.tests.factories.SchoolFactory')
     date_of_birth = factory.Faker('date_between_dates', date_start=datetime.date(2012, 1, 1), date_end=datetime.date(2015, 12, 31))
 
@@ -102,13 +100,13 @@ class TeacherFactory(Factory):
     school = SubFactory('school_management.tests.factories.SchoolFactory')
 
     @factory.post_generation
-    def classrooms(self, create, extracted, **kwargs):
+    def classes(self, create, extracted, **kwargs):
         if not create:
             return
 
         if extracted:
-            for classroom in extracted:
-                self.classrooms.add(classroom)
+            for klass in extracted:
+                self.classes.add(klass)
 
     @factory.post_generation
     def subjects(self, create, extracted, **kwargs):
@@ -118,17 +116,6 @@ class TeacherFactory(Factory):
         if extracted:
             for subject in extracted:
                 self.subjects.add(subject)
-
-
-class EnrolmentFactory(Factory):
-    class Meta:
-        model = Enrolment
-
-    student = SubFactory(StudentFactory)
-    classroom = SubFactory('school_management.tests.factories.ClassRoomFactory')
-    enrolment_date = fake.date()
-
-    status = Enrolment.Status.ENROLLED
 
 
 class SchoolAdminFactory(Factory):

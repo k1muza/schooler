@@ -64,6 +64,11 @@ class Teacher(TimeStampedModel):
 
     def __str__(self):
         return self.user.get_full_name() or self.user.username
+    
+    @property
+    def students(self) -> QuerySet["Student"]:
+        students = Student.objects.filter(classes__teacher=self).distinct()
+        return students
 
 
 @reversion.register()
@@ -74,14 +79,17 @@ class Guardian(TimeStampedModel):
 
     def __str__(self):
         return self.user.get_full_name() or self.user.username
+    
+    @property
+    def teachers(self) -> QuerySet[Teacher]:
+        """ Return all teachers of guardian students."""
+        student_ids = self.students.values_list("id", flat=True)
+        return Teacher.objects.filter(classes__students__id__in=student_ids).distinct()
 
 
 @reversion.register()
 class Student(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    classroom = models.ForeignKey(
-        "school_management.ClassRoom", on_delete=models.CASCADE, related_name="students"
-    )
     school = models.ForeignKey("school_management.School", on_delete=models.CASCADE)
     date_of_birth = models.DateField(null=True, blank=True)
     student_number = models.CharField(max_length=200, null=True, blank=True)
@@ -90,8 +98,9 @@ class Student(TimeStampedModel):
         return self.user.get_full_name()
 
     @property
-    def teacher(self) -> Teacher:
-        return self.classroom.teacher
+    def teachers(self) -> QuerySet[Teacher]:
+        """ Return all teachers of the student."""
+        return Teacher.objects.filter(classes__students=self).distinct()
 
     @property
     def versions(self) -> QuerySet[Version]:
@@ -99,7 +108,8 @@ class Student(TimeStampedModel):
     
     @property
     def guardians(self) -> QuerySet[Guardian]:
-        return Guardian.objects.filter(students__in=[self])
+        """ Return all guardians of the student."""
+        return Guardian.objects.filter(students=self)
 
     def save(self, *args, **kwargs):
         with reversion.create_revision():
@@ -117,25 +127,3 @@ class SchoolAdmin(TimeStampedModel):
         return (
             (self.user.get_full_name() or self.user.username) + " - " + self.school.name
         )
-
-
-@reversion.register()
-class Enrolment(TimeStampedModel):
-    class Status(models.TextChoices):
-        ENROLLED = "enrolled"
-        WITHDRAWN = "withdrawn"
-
-    student = models.OneToOneField(Student, on_delete=models.CASCADE)
-    classroom = models.ForeignKey(
-        "school_management.ClassRoom",
-        on_delete=models.CASCADE,
-        related_name="enrolments",
-    )
-    enrolment_date = models.DateField()
-
-    status = models.CharField(
-        max_length=15, choices=Status.choices, default=Status.ENROLLED
-    )
-
-    def __str__(self):
-        return self.student.user.get_full_name() or self.student.user.username

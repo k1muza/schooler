@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.test import APIClient
 from school_management.admin import SchoolAdmin
-from school_management.tests.factories import ClassRoomFactory
+from school_management.tests.factories import ClassFactory
 
 from user_management.tests.factories import GuardianFactory, SchoolAdminFactory, UserFactory, TeacherFactory, StudentFactory
 
@@ -17,13 +17,13 @@ def user_client():
 @pytest.fixture
 def teacher_client():
     client = APIClient()
-    teacher = TeacherFactory(classrooms=[ClassRoomFactory() for _ in range(3)])
+    teacher = TeacherFactory(classes=[ClassFactory() for _ in range(3)])
     client.force_authenticate(user=teacher.user)
     return client, teacher
 
 
 @pytest.fixture
-def school_admin_client():
+def schooladmin_client():
     client = APIClient()
     school_admin = SchoolAdminFactory()
     client.force_authenticate(user=school_admin.user)

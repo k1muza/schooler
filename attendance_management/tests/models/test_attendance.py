@@ -42,7 +42,7 @@ def test_delete_class_attendance():
 @pytest.mark.models
 def test_class_attendance_str():
     attendance = ClassAttendanceFactory()
-    assert str(attendance) == f'{attendance.student} - {attendance.classroom} - {attendance.attendance_date}'
+    assert str(attendance) == f'{attendance.student} - {attendance.klass} - {attendance.attendance_date}'
 
 
 @pytest.mark.django_db

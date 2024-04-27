@@ -2,7 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import ForeignKey
-from school_management.serializers import ClassroomSerializer, SchoolSerializer
+from school_management.serializers import ClassSerializer, SchoolSerializer
 from user_management.models import Student, Teacher, User
 from curriculum_management.serializers import SubjectSerializer
 
@@ -125,15 +125,10 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 class StudentSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
-    classroom = ClassroomSerializer(read_only=True)
+    klass = ClassSerializer(read_only=True)
     school = SchoolSerializer(read_only=True)
     user = UserSerializer(required=False)
     user_id = serializers.IntegerField(write_only=True, required=False)
-    classroom_id = serializers.IntegerField(
-        write_only=True,
-        required=True,
-        error_messages={"required": "classroom_id is required."},
-    )
     school_id = serializers.IntegerField(
         write_only=True,
         required=True,
@@ -151,7 +146,6 @@ class StudentSerializer(serializers.ModelSerializer):
         request = self.context.get('request', None)
         if request and request.method in ['PUT', 'PATCH']:
             self.fields["user_id"].required = False
-            self.fields["classroom_id"].required = False
             self.fields["school_id"].required = False
 
     def is_valid(self, raise_exception=False):

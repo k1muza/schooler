@@ -35,5 +35,5 @@ def test_delete_school():
     assert School.objects.count() == 0
 
 @pytest.mark.models
-def test_enrolment_admin_registration():
+def test_admin_registration():
     assert admin.site._registry.get(School) is not None, 'School is not registered in the admin site'

@@ -3,18 +3,21 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 from reversion.models import Version
-from school_management.models import School
 
-from school_management.tests.factories import ClassRoomFactory, SchoolFactory
+from school_management.tests.factories import SchoolFactory
 from user_management.models import Teacher
 from user_management.tests.factories import TeacherFactory
 
 ####################### Happy path tests #######################
 
+@pytest.mark.parametrize("client_fixture, expected_status", [
+    ('superuser_client', status.HTTP_201_CREATED),
+    ('schooladmin_client', status.HTTP_201_CREATED),
+])
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_by_school_admin_201(school_admin_client):
-    client, schooladmin = school_admin_client
+def test_teacher_create_by_priviledged_admin(request, client_fixture, expected_status):
+    client, admin = request.getfixturevalue(client_fixture)
     user_data = {
         'username': 'testuser',
         'password': 'testpass',
@@ -24,21 +27,27 @@ def test_teacher_create_by_school_admin_201(school_admin_client):
     }
     data = {
         'user': user_data,
-        'school_id': schooladmin.school.pk,
         'qualifications': 'Ph.D. in Education',
     }
+
+    if hasattr(admin, 'school'):
+        data['school_id'] = admin.school.pk
+    else:
+        data['school_id'] = SchoolFactory().pk
+
     url = reverse('teacher-list')
     response = client.post(url, data, format="json")
-    assert response.status_code == status.HTTP_201_CREATED
+    assert response.status_code == expected_status
     assert Teacher.objects.count() == 1
     teacher = Teacher.objects.first()
     assert teacher.qualifications == data['qualifications']
     assert teacher.user.username == user_data['username']
 
+
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_by_school_admin_defaults_school(school_admin_client):
-    client, schooladmin = school_admin_client
+def test_teacher_create_by_school_admin_defaults_school(schooladmin_client):
+    client, schooladmin = schooladmin_client
     user_data = {
         'username': 'testuser',
         'password': 'testpass',
@@ -60,8 +69,8 @@ def test_teacher_create_by_school_admin_defaults_school(school_admin_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_creates_new_version(school_admin_client):
-    client, schooladmin = school_admin_client
+def test_teacher_create_creates_new_version(schooladmin_client):
+    client, schooladmin = schooladmin_client
     user_data = {
         'username': 'testuser',
         'password': 'testpass',
@@ -94,8 +103,8 @@ def test_teacher_create_creates_new_version(school_admin_client):
     
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_with_another_teacher_user(school_admin_client):
-    client, schooladmin = school_admin_client
+def test_teacher_create_with_another_teacher_user(schooladmin_client):
+    client, schooladmin = schooladmin_client
     teacher = TeacherFactory()
     user_data = {
         'username': teacher.user.username,
@@ -117,8 +126,8 @@ def test_teacher_create_with_another_teacher_user(school_admin_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_with_missing_user(school_admin_client):
-    client, schooladmin = school_admin_client
+def test_teacher_create_with_missing_user(schooladmin_client):
+    client, schooladmin = schooladmin_client
     data = {
         'school_id': schooladmin.school.pk,
         'qualifications': 'Ph.D. in Education',
@@ -131,8 +140,8 @@ def test_teacher_create_with_missing_user(school_admin_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_with_invalid_school_id(school_admin_client):
-    client, _ = school_admin_client
+def test_teacher_create_with_invalid_school_id(schooladmin_client):
+    client, _ = schooladmin_client
     user_data = {
         'username': 'testuser',
         'password': 'testpass',
@@ -153,18 +162,55 @@ def test_teacher_create_with_invalid_school_id(school_admin_client):
     assert Teacher.objects.count() == 0
 
 
-####################### Permission tests #######################
+@pytest.mark.django_db
+@pytest.mark.views
+def test_teacher_create_with_missing_school_id(superuser_client):
+    client, _ = superuser_client
+    data = {
+        'qualifications': 'Ph.D. in Education',
+    }
+    url = reverse('teacher-list')
+    response = client.post(url, data, format="json")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'You must specify a school id.' in str(response.data)
+
 
 @pytest.mark.django_db
 @pytest.mark.views
+def test_teacher_create_with_unsupported_field(superuser_client):
+    client, _ = superuser_client
+    data = {
+        'user': {
+            'username': 'testuser',
+            'password': 'testpass',
+            'email': 'test@email.com',
+            'first_name': 'Test',
+            'last_name': 'User',
+        },
+        'school_id': SchoolFactory().pk,
+        'qualifications': 'Ph.D. in Education',
+        'unsupported_field': 'unsupported',
+    }
+    url = reverse('teacher-list')
+    response = client.post(url, data, format="json")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'unsupported_fields' in response.data.keys()
+    assert Teacher.objects.count() == 0
+
+
+####################### Permission tests #######################
+
 @pytest.mark.parametrize("client_fixture, expected_status", [
-    ('school_admin_client', status.HTTP_403_FORBIDDEN),
+    ('schooladmin_client', status.HTTP_403_FORBIDDEN),
     ('teacher_client', status.HTTP_403_FORBIDDEN),
     ('student_client', status.HTTP_403_FORBIDDEN),
     ('guardian_client', status.HTTP_403_FORBIDDEN),
+    ('user_client', status.HTTP_403_FORBIDDEN),
 ])
-def test_teacher_create_by_role_403(request, client_fixture, expected_status):
-    client, obj = request.getfixturevalue(client_fixture)
+@pytest.mark.views
+@pytest.mark.django_db
+def test_teacher_create_by_unpriviledged_user(request, client_fixture, expected_status):
+    client, _ = request.getfixturevalue(client_fixture)
     school = SchoolFactory()
     user_data = {
         'username': 'testuser',
@@ -185,44 +231,8 @@ def test_teacher_create_by_role_403(request, client_fixture, expected_status):
 
 
 @pytest.mark.django_db
-def test_create_by_unauthorized_user_returns_403(user_client):
-    client, _ = user_client
-    school: School = SchoolFactory()
-    user_data = {
-        'username': 'testuser',
-        'password': 'testpass',
-        'email': 'test@email.com',
-        'first_name': 'Test',
-        'last_name': 'User',
-    }
-    data = {
-        'user': user_data,
-        'school_id': school.pk,
-        'qualifications': 'Ph.D. in Education',
-    }
-    url = reverse('teacher-list')
-    assert Teacher.objects.count() == 0
-    response = client.post(url, data, format="json")
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert Teacher.objects.count() == 0
-
-
-@pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_validation_error(superuser_client):
-    client, _ = superuser_client
-    data = {
-        'qualifications': 'Ph.D. in Education',
-    }
-    url = reverse('teacher-list')
-    response = client.post(url, data, format="json")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert 'You must specify a school id.' in str(response.data)
-
-
-@pytest.mark.django_db
-@pytest.mark.views
-def test_teacher_create_unauthenticated():
+def test_teacher_create_by_unauth_user():
     client = APIClient()
     data = {
         'user': {
