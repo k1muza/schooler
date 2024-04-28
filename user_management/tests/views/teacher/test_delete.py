@@ -13,7 +13,7 @@ from user_management.tests.factories import TeacherFactory
 
 @pytest.mark.parametrize("client_fixture, expected_status", [
     ('superuser_client', status.HTTP_201_CREATED),
-    ('schooladmin_client', status.HTTP_201_CREATED),
+    ('administrator_client', status.HTTP_201_CREATED),
 ])
 @pytest.mark.django_db
 @pytest.mark.views
@@ -30,8 +30,8 @@ def test_delete_teacher_by_priviledged_admin(client_fixture, expected_status, re
 
 
 @pytest.mark.django_db
-def test_delete_teacher_creates_version(schooladmin_client):
-    client, schooladmin = schooladmin_client
+def test_delete_teacher_creates_version(administrator_client):
+    client, schooladmin = administrator_client
     teacher = TeacherFactory(school=schooladmin.school)
     
     assert Teacher.objects.filter(user=teacher.user).exists()
@@ -52,10 +52,9 @@ def test_delete_teacher_creates_version(schooladmin_client):
 ######################### Perm tests #########################
 
 @pytest.mark.parametrize("client_fixture, expected_status", [
-    ('schooladmin_client', status.HTTP_404_NOT_FOUND),
+    ('administrator_client', status.HTTP_404_NOT_FOUND),
     ('teacher_client', status.HTTP_404_NOT_FOUND),
     ('student_client', status.HTTP_404_NOT_FOUND),
-    ('guardian_client', status.HTTP_404_NOT_FOUND),
     ('user_client', status.HTTP_404_NOT_FOUND),
 ])
 @pytest.mark.django_db

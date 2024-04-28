@@ -38,9 +38,6 @@ class TeacherViewSet(viewsets.ModelViewSet):
             elif not School.objects.filter(id=request.data.get('school_id')).exists():
                 return Response(f'School with id {request.data.get("school_id")} does not exist.', status=status.HTTP_404_NOT_FOUND)
             
-        elif not request.data.get('school_id'):
-            request.data['school_id'] = request.user.school_admin.school_id
-
         elif not School.objects.filter(id=request.data.get('school_id')).exists():
             return Response(f'School with id {request.data.get("school_id")} does not exist.', status=status.HTTP_404_NOT_FOUND)
 

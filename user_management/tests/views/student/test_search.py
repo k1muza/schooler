@@ -27,8 +27,8 @@ def setup_students_data(school=None, klass=None):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_search_by_school_admin(schooladmin_client):
-    client, schooladmin = schooladmin_client
+def test_student_search_by_school_admin(administrator_client):
+    client, schooladmin = administrator_client
     
     setup_students_data(school=schooladmin.school)
 
@@ -64,8 +64,8 @@ def test_student_search_by_school_admin(schooladmin_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_search_by_other_school_admin(schooladmin_client):
-    client, _ = schooladmin_client
+def test_student_search_by_other_school_admin(administrator_client):
+    client, _ = administrator_client
     setup_students_data()
     base_url = reverse('student-search')
     response = client.get(base_url)

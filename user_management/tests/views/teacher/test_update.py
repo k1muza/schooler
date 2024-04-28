@@ -16,31 +16,27 @@ def test_teacher_update_by_superuser_200(superuser_client):
     url = reverse("teacher-detail", args=[teacher.id])
     updated_data = {
         "school_id": teacher.school.id,
-        "qualifications": "Updated qualifications",
         "user_id": teacher.user.id,
     }
     response = client.put(url, updated_data, format="json")
     assert response.status_code == status.HTTP_200_OK
     teacher.refresh_from_db()
-    assert teacher.qualifications == updated_data["qualifications"]
 
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_update_by_school_admin_200(schooladmin_client):
-    client, school_admin = schooladmin_client
+def test_teacher_update_by_school_admin_200(administrator_client):
+    client, school_admin = administrator_client
     teacher = TeacherFactory(school=school_admin.school)
 
     url = reverse("teacher-detail", args=[teacher.id])
     updated_data = {
         "school_id": teacher.school.id,
-        "qualifications": "Updated qualifications",
         "user_id": teacher.user.id,
     }
     response = client.put(url, updated_data, format="json")
     assert response.status_code == status.HTTP_200_OK
     teacher.refresh_from_db()
-    assert teacher.qualifications == updated_data["qualifications"]
 
 
 @pytest.mark.django_db
@@ -51,13 +47,11 @@ def test_teacher_update_by_teacher_200(teacher_client):
     url = reverse("teacher-detail", args=[teacher.id])
     updated_data = {
         "school_id": teacher.school.id,
-        "qualifications": "Updated qualifications",
         "user_id": teacher.user.id,
     }
     response = client.put(url, updated_data, format="json")
     assert response.status_code == status.HTTP_200_OK
     teacher.refresh_from_db()
-    assert teacher.qualifications == updated_data["qualifications"]
 
 
 ########################## Permission tests #############################
@@ -66,10 +60,9 @@ def test_teacher_update_by_teacher_200(teacher_client):
 @pytest.mark.django_db
 @pytest.mark.views
 @pytest.mark.parametrize("client_fixture, expected_status", [
-    ('schooladmin_client', status.HTTP_404_NOT_FOUND),
+    ('administrator_client', status.HTTP_404_NOT_FOUND),
     ('teacher_client', status.HTTP_404_NOT_FOUND),
     ('student_client', status.HTTP_404_NOT_FOUND),
-    ('guardian_client', status.HTTP_404_NOT_FOUND),
 ])
 def test_teacher_update_by_role_404(request, client_fixture, expected_status):
     client, _ = request.getfixturevalue(client_fixture)
@@ -78,13 +71,11 @@ def test_teacher_update_by_role_404(request, client_fixture, expected_status):
     url = reverse("teacher-detail", args=[teacher.id])
     updated_data = {
         "school_id": teacher.school.id,
-        "qualifications": teacher.qualifications + ' updated',
         "user_id": teacher.user.id,
     }
     response = client.put(url, updated_data, format="json")
     assert response.status_code == expected_status
     teacher.refresh_from_db()
-    assert teacher.qualifications != updated_data["qualifications"]
 
 
 @pytest.mark.django_db
@@ -118,7 +109,6 @@ def test_teacher_update_immutable_school_id(superuser_client):
     url = reverse("teacher-detail", args=[teacher.id])
     updated_data = {
         "school_id": school.id,
-        "qualifications": "Updated qualifications",
         "user_id": teacher.user.id,
     }
     response = client.put(url, updated_data, format="json")

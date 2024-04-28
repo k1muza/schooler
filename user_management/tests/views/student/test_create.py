@@ -26,7 +26,6 @@ def generic_data(generic_user_data):
     return {
         'user': generic_user_data,
         'school_id': klass.school.pk,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
 
 ######################### Happy path tests #########################
@@ -39,33 +38,29 @@ def test_student_create_by_class_teacher(teacher_client, generic_user_data):
     data = {
         'user': generic_user_data,
         'school_id': klass.school.pk,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     response = client.post(url, data, format="json")
     assert response.status_code == status.HTTP_201_CREATED
     assert Student.objects.count() == 1
     student = Student.objects.first()
-    assert student.date_of_birth.strftime('%Y-%m-%d') == data['date_of_birth']
     assert student.user.username == data['user']['username']
 
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_create_by_school_admin(schooladmin_client, generic_user_data):
-    client, school_admin = schooladmin_client
+def test_student_create_by_school_admin(administrator_client, generic_user_data):
+    client, school_admin = administrator_client
     school = school_admin.school
     data = {
         'user': generic_user_data,
         'school_id': school.pk,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     response = client.post(url, data, format="json")
     assert response.status_code == status.HTTP_201_CREATED
     assert Student.objects.count() == 1
     student = Student.objects.first()
-    assert student.date_of_birth.strftime('%Y-%m-%d') == data['date_of_birth']
     assert student.user.username == data['user']['username']
 
 
@@ -77,14 +72,12 @@ def test_student_create_by_superuser(superuser_client, generic_user_data):
     data = {
         'user': generic_user_data,
         'school_id': school.pk,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     response = client.post(url, data, format="json")
     assert response.status_code == status.HTTP_201_CREATED
     assert Student.objects.count() == 1
     student = Student.objects.first()
-    assert student.date_of_birth.strftime('%Y-%m-%d') == data['date_of_birth']
     assert student.user.username == data['user']['username']
 
 
@@ -96,7 +89,6 @@ def test_student_create_adds_revision(superuser_client, generic_user_data):
     data = {
         'user': generic_user_data,
         'school_id': klass.school.pk,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     response = client.post(url, data, format="json")
@@ -114,7 +106,6 @@ def test_student_create_without_school_id(superuser_client, generic_user_data):
     client, _ = superuser_client
     data = {
         'user': generic_user_data,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     response = client.post(url, data, format="json")
@@ -130,7 +121,6 @@ def test_student_create_with_invalid_school_id(superuser_client, generic_user_da
     data = {
         'user': generic_user_data,
         'school_id': 9999999,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     response = client.post(url, data, format="json")
@@ -148,7 +138,6 @@ def test_student_create_with_another_student_user(superuser_client):
     data = {
         'user_id': original_student.user.pk,
         'school_id': school.pk,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     # Try to create another student with the same user
@@ -164,7 +153,6 @@ def test_create_student_without_user_id_returns_400(superuser_client):
     school = SchoolFactory()
     data = {
         'school_id': school.pk,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     # Try to create another student with the same user
@@ -184,7 +172,6 @@ def test_create_invalid_student_returns_400(superuser_client):
         'user_id': user.pk,
         'invalid_field': 'invalid_value',
         'school_id': school.pk,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     # Try to create another student with the same user
@@ -222,7 +209,6 @@ def test_student_create_by_teacher_from_different_school(teacher_client, generic
     data = {
         'user': generic_user_data,
         'school_id': SchoolFactory().pk,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     response = client.post(url, data, format="json")
@@ -232,13 +218,12 @@ def test_student_create_by_teacher_from_different_school(teacher_client, generic
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_student_create_by_unrelated_school_admin_returns_403(schooladmin_client, generic_user_data):
-    client, school_admin = schooladmin_client
+def test_student_create_by_unrelated_school_admin_returns_403(administrator_client, generic_user_data):
+    client, school_admin = administrator_client
     school = SchoolFactory()
     data = {
         'user': generic_user_data,
         'school_id': school.pk,
-        'date_of_birth': (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
     }
     url = reverse('student-list')
     response = client.post(url, data, format="json")

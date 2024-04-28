@@ -2,6 +2,7 @@ from django.http import QueryDict
 import pytest
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.test import APIClient
 
 from user_management.tests.factories import TeacherFactory, UserFactory
 
@@ -57,7 +58,7 @@ def test_teacher_search_by_admin(superuser_client, teacher_data, search_term, re
 
 
 @pytest.mark.django_db
-def test_teacher_search_by_schooladmin(schooladmin_client):
+def test_teacher_search_by_schooladmin(administrator_client):
     pass
 
 
@@ -77,5 +78,5 @@ def test_teacher_search_by_student(student_client):
 
 
 @pytest.mark.django_db
-def test_teacher_search_by_guardian(guardian_client):
+def test_teacher_search_by_guardian(client: APIClient):
     pass

@@ -12,7 +12,7 @@ from user_management.tests.factories import TeacherFactory
 
 @pytest.mark.parametrize("client_fixture, expected_status", [
     ('superuser_client', status.HTTP_201_CREATED),
-    ('schooladmin_client', status.HTTP_201_CREATED),
+    ('administrator_client', status.HTTP_201_CREATED),
 ])
 @pytest.mark.django_db
 @pytest.mark.views
@@ -27,7 +27,6 @@ def test_teacher_create_by_priviledged_admin(request, client_fixture, expected_s
     }
     data = {
         'user': user_data,
-        'qualifications': 'Ph.D. in Education',
     }
 
     if hasattr(admin, 'school'):
@@ -40,37 +39,13 @@ def test_teacher_create_by_priviledged_admin(request, client_fixture, expected_s
     assert response.status_code == expected_status
     assert Teacher.objects.count() == 1
     teacher = Teacher.objects.first()
-    assert teacher.qualifications == data['qualifications']
     assert teacher.user.username == user_data['username']
 
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_by_school_admin_defaults_school(schooladmin_client):
-    client, schooladmin = schooladmin_client
-    user_data = {
-        'username': 'testuser',
-        'password': 'testpass',
-        'email': 'test@email.com',
-        'first_name': 'Test',
-        'last_name': 'User',
-    }
-    data = {
-        'user': user_data,
-        'qualifications': 'Ph.D. in Education',
-    }
-    url = reverse('teacher-list')
-    response = client.post(url, data, format="json")
-    assert response.status_code == status.HTTP_201_CREATED
-    assert Teacher.objects.count() == 1
-    teacher = Teacher.objects.first()
-    assert teacher.school == schooladmin.school
-
-
-@pytest.mark.django_db
-@pytest.mark.views
-def test_teacher_create_creates_new_version(schooladmin_client):
-    client, schooladmin = schooladmin_client
+def test_teacher_create_creates_new_version(administrator_client):
+    client, schooladmin = administrator_client
     user_data = {
         'username': 'testuser',
         'password': 'testpass',
@@ -81,7 +56,6 @@ def test_teacher_create_creates_new_version(schooladmin_client):
     data = {
         'user': user_data,
         'school_id': schooladmin.school.pk,
-        'qualifications': 'Ph.D. in Education',
     }
     url = reverse('teacher-list')
     response = client.post(url, data, format="json")
@@ -103,8 +77,8 @@ def test_teacher_create_creates_new_version(schooladmin_client):
     
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_with_another_teacher_user(schooladmin_client):
-    client, schooladmin = schooladmin_client
+def test_teacher_create_with_another_teacher_user(administrator_client):
+    client, schooladmin = administrator_client
     teacher = TeacherFactory()
     user_data = {
         'username': teacher.user.username,
@@ -116,7 +90,6 @@ def test_teacher_create_with_another_teacher_user(schooladmin_client):
     data = {
         'user': user_data,
         'school_id': schooladmin.school.pk,
-        'qualifications': 'Ph.D. in Education',
     }
     url = reverse('teacher-list')
     response = client.post(url, data, format="json")
@@ -126,11 +99,10 @@ def test_teacher_create_with_another_teacher_user(schooladmin_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_with_missing_user(schooladmin_client):
-    client, schooladmin = schooladmin_client
+def test_teacher_create_with_missing_user(administrator_client):
+    client, schooladmin = administrator_client
     data = {
         'school_id': schooladmin.school.pk,
-        'qualifications': 'Ph.D. in Education',
     }
     url = reverse('teacher-list')
     response = client.post(url, data, format="json")
@@ -140,8 +112,8 @@ def test_teacher_create_with_missing_user(schooladmin_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_teacher_create_with_invalid_school_id(schooladmin_client):
-    client, _ = schooladmin_client
+def test_teacher_create_with_invalid_school_id(administrator_client):
+    client, _ = administrator_client
     user_data = {
         'username': 'testuser',
         'password': 'testpass',
@@ -152,7 +124,6 @@ def test_teacher_create_with_invalid_school_id(schooladmin_client):
     data = {
         'user': user_data,
         'school_id': 99999,
-        'qualifications': 'Ph.D. in Education',
     }
 
     url = reverse('teacher-list')
@@ -167,7 +138,6 @@ def test_teacher_create_with_invalid_school_id(schooladmin_client):
 def test_teacher_create_with_missing_school_id(superuser_client):
     client, _ = superuser_client
     data = {
-        'qualifications': 'Ph.D. in Education',
     }
     url = reverse('teacher-list')
     response = client.post(url, data, format="json")
@@ -188,7 +158,6 @@ def test_teacher_create_with_unsupported_field(superuser_client):
             'last_name': 'User',
         },
         'school_id': SchoolFactory().pk,
-        'qualifications': 'Ph.D. in Education',
         'unsupported_field': 'unsupported',
     }
     url = reverse('teacher-list')
@@ -201,10 +170,9 @@ def test_teacher_create_with_unsupported_field(superuser_client):
 ####################### Permission tests #######################
 
 @pytest.mark.parametrize("client_fixture, expected_status", [
-    ('schooladmin_client', status.HTTP_403_FORBIDDEN),
+    ('administrator_client', status.HTTP_403_FORBIDDEN),
     ('teacher_client', status.HTTP_403_FORBIDDEN),
     ('student_client', status.HTTP_403_FORBIDDEN),
-    ('guardian_client', status.HTTP_403_FORBIDDEN),
     ('user_client', status.HTTP_403_FORBIDDEN),
 ])
 @pytest.mark.views
@@ -222,7 +190,6 @@ def test_teacher_create_by_unpriviledged_user(request, client_fixture, expected_
     data = {
         'user': user_data,
         'school_id': school.pk,
-        'qualifications': 'Ph.D. in Education',
     }
     url = reverse('teacher-list')
     response = client.post(url, data, format="json")
@@ -242,7 +209,6 @@ def test_teacher_create_by_unauth_user():
             'first_name': 'Test',
             'last_name': 'User',
         },
-        'qualifications': 'Ph.D. in Education',
     }
     url = reverse('teacher-list')
     response = client.post(url, data, format="json")

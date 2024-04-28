@@ -5,6 +5,7 @@ from ..models import School, Level, Class
 
 fake = Faker()
 
+
 class SchoolFactory(Factory):
     class Meta:
         model = School

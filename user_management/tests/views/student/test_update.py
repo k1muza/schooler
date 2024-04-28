@@ -12,8 +12,27 @@ from user_management.tests.factories import StudentFactory
 
 # ######################### Happy path tests #########################
 
-@pytest.mark.django_db
+
 @pytest.mark.views
+@pytest.mark.django_db
+def test_student_update_by_superuser_returns_200(superuser_client):
+    client, _ = superuser_client
+    student = StudentFactory()
+    updated_data = {
+        "id": student.id,
+        "school_id": student.school.id,
+        "user_id": student.user.id,
+        "student_number": "123456",
+    }
+    url = reverse('student-detail', args=[student.id])
+    response = client.put(url, updated_data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+    student.refresh_from_db()
+    assert student.student_number == updated_data['student_number']
+
+
+@pytest.mark.views
+@pytest.mark.django_db
 def test_student_update_by_class_teacher_returns_200(teacher_client):
     client, teacher = teacher_client
     student = StudentFactory(school=teacher.school)
@@ -23,20 +42,52 @@ def test_student_update_by_class_teacher_returns_200(teacher_client):
         "id": student.id,
         "school_id": student.school.id,
         "user_id": student.user.id,
-        "date_of_birth": (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
         "student_number": "123456",
     }
     url = reverse('student-detail', args=[student.id])
     response = client.put(url, updated_data, format='json')
     assert response.status_code == status.HTTP_200_OK
     student.refresh_from_db()
-    assert student.date_of_birth.strftime('%Y-%m-%d') == updated_data['date_of_birth']
     assert student.student_number == updated_data['student_number']
 
 
+@pytest.mark.views
+@pytest.mark.django_db
+def test_student_update_by_schooladmin_returns_200(administrator_client):
+    client, admin = administrator_client
+    student = StudentFactory(school=admin.school)
+    updated_data = {
+        "id": student.id,
+        "school_id": student.school.id,
+        "user_id": student.user.id,
+        "student_number": "123456",
+    }
+    url = reverse('student-detail', args=[student.id])
+    response = client.put(url, updated_data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+    student.refresh_from_db()
+    assert student.student_number == updated_data['student_number']
+
+
+@pytest.mark.views
+@pytest.mark.django_db
+def test_student_update_by_self(student_client):
+    client, student = student_client
+    updated_data = {
+        "id": student.id,
+        "school_id": student.school.id,
+        "user_id": student.user.id,
+        "student_number": "123456",
+    }
+    url = reverse('student-detail', args=[student.id])
+    response = client.put(url, updated_data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+    student.refresh_from_db()
+    assert student.student_number == updated_data['student_number']
+
 # @pytest.mark.django_db
 # @pytest.mark.views
-# def test_student_update_by_schooladmin_returns_200(schooladmin_client):
+# def test_student_update_by_schooladmin_returns_200(administrator_client):
 #     pass
 
 
@@ -80,7 +131,7 @@ def test_student_update_by_class_teacher_returns_200(teacher_client):
 
 # @pytest.mark.django_db
 # @pytest.mark.views
-# def test_student_update_by_unrelated_school_admin_returns_404(schooladmin_client):
+# def test_student_update_by_unrelated_school_admin_returns_404(administrator_client):
 #     pass
 
 
@@ -110,7 +161,6 @@ def test_student_update_immutable_school_id(superuser_client):
         "id": student.id,
         "school_id": school.id,
         "user_id": student.user.id,
-        "date_of_birth": (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
         "student_number": "123456",
     }
     response = client.put(url, updated_data, format="json")

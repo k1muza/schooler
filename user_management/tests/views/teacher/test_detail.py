@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 from school_management.tests.factories import ClassFactory, SchoolFactory
-from user_management.tests.factories import StudentFactory, TeacherFactory
+from user_management.tests.factories import GuardianshipFactory, StudentFactory, TeacherFactory, UserFactory
 from school_management.models import Class
 
 
@@ -11,7 +11,7 @@ from school_management.models import Class
 
 @pytest.mark.parametrize("client_fixture, expected_status", [
     ('superuser_client', status.HTTP_200_OK),
-    ('schooladmin_client', status.HTTP_200_OK),
+    ('administrator_client', status.HTTP_200_OK),
 ])
 @pytest.mark.django_db
 @pytest.mark.views
@@ -49,13 +49,13 @@ def test_get_teacher_by_class_student(student_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_teacher_by_class_student_guardian(guardian_client):
+def test_get_teacher_by_class_student_guardian(client):
     student = StudentFactory()
+    guardian = GuardianshipFactory(user=student.user, guardian=UserFactory())
     teacher = TeacherFactory()
     klass: Class = ClassFactory(teacher=teacher)
     klass.students.add(student)
-    client, guardian = guardian_client
-    guardian.students.add(student)
+    client.force_login(guardian.guardian)
     url = reverse('teacher-detail', args=[teacher.id])
     response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
@@ -63,10 +63,9 @@ def test_get_teacher_by_class_student_guardian(guardian_client):
 ######################### Perm tests #########################
 
 @pytest.mark.parametrize("client_fixture, expected_status", [
-    ('schooladmin_client', status.HTTP_404_NOT_FOUND),
+    ('administrator_client', status.HTTP_404_NOT_FOUND),
     ('teacher_client', status.HTTP_404_NOT_FOUND),
     ('student_client', status.HTTP_404_NOT_FOUND),
-    ('guardian_client', status.HTTP_404_NOT_FOUND),
     ('user_client', status.HTTP_404_NOT_FOUND),
 ])
 @pytest.mark.django_db
@@ -77,6 +76,19 @@ def test_get_teacher_by_unpriv_admin(client_fixture, expected_status, request):
     url = reverse('teacher-detail', args=[teacher.id])
     response = client.get(url)
     assert response.status_code == expected_status
+
+
+@pytest.mark.views
+@pytest.mark.django_db
+def test_get_teacher_by_guardian_of_other_student(client):
+    guardian = GuardianshipFactory()
+    teacher = TeacherFactory()
+    klass = ClassFactory(teacher=teacher)
+    klass.students.add(StudentFactory())
+    client.force_login(guardian.guardian)
+    url = reverse('teacher-detail', args=[teacher.id])
+    response = client.get(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 @pytest.mark.django_db

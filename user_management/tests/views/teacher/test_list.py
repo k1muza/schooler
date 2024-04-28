@@ -12,7 +12,7 @@ def test_teacher_list_by_superuser(superuser_client):
 
 
 @pytest.mark.django_db
-def test_teacher_list_by_school_admin(schooladmin_client):
+def test_teacher_list_by_school_admin(administrator_client):
     pass
 
 
@@ -32,7 +32,7 @@ def test_teacher_list_by_student(student_client):
 
 
 @pytest.mark.django_db
-def test_teacher_list_by_guardian(guardian_client):
+def test_teacher_list_by_guardian(client):
     pass
 
 @pytest.mark.django_db

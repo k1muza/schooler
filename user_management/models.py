@@ -2,13 +2,14 @@ import reversion
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.query import QuerySet
-from reversion.models import Version
+from django.db.models import Q
 
-from core.models import TimeStampedModel
+from core.models import TimeStampedModel, VersionedModel
+from school_management.models import School
 
 
 @reversion.register()
-class User(AbstractUser, TimeStampedModel):
+class User(AbstractUser, TimeStampedModel, VersionedModel):
     class Gender(models.TextChoices):
         MALE = "male"
         FEMALE = "female"
@@ -16,13 +17,40 @@ class User(AbstractUser, TimeStampedModel):
     gender = models.CharField(
         max_length=6, choices=Gender.choices, default=Gender.MALE, null=True, blank=True
     )
+    profile = models.JSONField(null=True, blank=True)
+    guardians = models.ManyToManyField("self", through="Guardianship", symmetrical=False)
 
     def __str__(self):
         return self.get_full_name() or self.username
+    
+    @property
+    def schools(self) -> QuerySet["School"]:
+        """ Schools where the user is an administrator."""
+        query = (
+            Q(administratorships__user=self) | 
+            Q(teacherships__user=self) | 
+            Q(studentships__user=self)
+        )
+        return School.objects.filter(query).distinct()
+    
+    @property
+    def teachers(self) -> QuerySet["Teacher"]:
+        """ Teachers who teach user's classes."""
+        return Teacher.objects.filter(classes__students__user=self).distinct()
+    
+    @property
+    def students(self) -> QuerySet["Student"]:
+        """ Students taught by the user."""
+        return Student.objects.filter(classes__teacher__user=self).distinct()
+    
+    @property
+    def administrators(self) -> QuerySet["Administrator"]:
+        """ Administrators of the user's school."""
+        return Administrator.objects.filter(school__in=self.schools).distinct()
 
 
 @reversion.register()
-class UserImage(models.Model):
+class UserImage(TimeStampedModel, VersionedModel):
     image = models.ImageField(upload_to="images/users")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="images")
     is_profile_photo = models.BooleanField(default=False)
@@ -31,7 +59,7 @@ class UserImage(models.Model):
         unique_together = ("user", "is_profile_photo")
 
     def __str__(self):
-        return (
+        return self.user.get_full_name() + ' - ' + (
             str(self.image.url) + " (Profile Photo)"
             if self.is_profile_photo
             else str(self.image.url)
@@ -39,7 +67,7 @@ class UserImage(models.Model):
 
 
 @reversion.register()
-class UserContact(models.Model):
+class UserContact(TimeStampedModel, VersionedModel):
     class ContactType(models.TextChoices):
         PHONE = "phone"
         EMAIL = "email"
@@ -52,47 +80,30 @@ class UserContact(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="contacts")
 
     def __str__(self):
-        return self.contact_type + " - " + self.contact
+        return f'{self.user.get_full_name()} - {self.contact_type} - {self.contact}'
 
 
 @reversion.register()
-class Teacher(TimeStampedModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    school = models.ForeignKey("school_management.School", on_delete=models.CASCADE)
+class Teacher(TimeStampedModel, VersionedModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="teacherships")
+    school = models.ForeignKey("school_management.School", on_delete=models.CASCADE, related_name="teacherships")
     subjects = models.ManyToManyField("curriculum_management.Subject")
-    qualifications = models.TextField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ("user", "school")
 
     def __str__(self):
         return self.user.get_full_name() or self.user.username
     
-    @property
-    def students(self) -> QuerySet["Student"]:
-        students = Student.objects.filter(classes__teacher=self).distinct()
-        return students
-
 
 @reversion.register()
-class Guardian(TimeStampedModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    students = models.ManyToManyField("Student")
-    occupation = models.CharField(max_length=200, null=True, blank=True)
-
-    def __str__(self):
-        return self.user.get_full_name() or self.user.username
-    
-    @property
-    def teachers(self) -> QuerySet[Teacher]:
-        """ Return all teachers of guardian students."""
-        student_ids = self.students.values_list("id", flat=True)
-        return Teacher.objects.filter(classes__students__id__in=student_ids).distinct()
-
-
-@reversion.register()
-class Student(TimeStampedModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    school = models.ForeignKey("school_management.School", on_delete=models.CASCADE)
-    date_of_birth = models.DateField(null=True, blank=True)
+class Student(TimeStampedModel, VersionedModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="studentships")
+    school = models.ForeignKey("school_management.School", on_delete=models.CASCADE, related_name="studentships")
     student_number = models.CharField(max_length=200, null=True, blank=True)
+
+    class Meta:
+        unique_together = ("user", "school")
 
     def __str__(self):
         return self.user.get_full_name()
@@ -102,28 +113,29 @@ class Student(TimeStampedModel):
         """ Return all teachers of the student."""
         return Teacher.objects.filter(classes__students=self).distinct()
 
-    @property
-    def versions(self) -> QuerySet[Version]:
-        return Version.objects.get_for_object(self)
-    
-    @property
-    def guardians(self) -> QuerySet[Guardian]:
-        """ Return all guardians of the student."""
-        return Guardian.objects.filter(students=self)
-
-    def save(self, *args, **kwargs):
-        with reversion.create_revision():
-            super(Student, self).save(*args, **kwargs)
-
 
 @reversion.register()
-class SchoolAdmin(TimeStampedModel):
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="school_admin"
-    )
-    school = models.ForeignKey("school_management.School", on_delete=models.CASCADE)
+class Administrator(TimeStampedModel, VersionedModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="administratorships")
+    school = models.ForeignKey("school_management.School", on_delete=models.CASCADE, related_name="administratorships")
+
+    class Meta:
+        unique_together = ("user", "school")
 
     def __str__(self):
         return (
             (self.user.get_full_name() or self.user.username) + " - " + self.school.name
         )
+
+
+@reversion.register()
+class Guardianship(TimeStampedModel, VersionedModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="guardianship")
+    guardian = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wards")
+    relationship = models.CharField(max_length=200, )
+
+    class Meta:
+        unique_together = ("user", "guardian")
+
+    def __str__(self):
+        return self.user.get_full_name() or self.user.username

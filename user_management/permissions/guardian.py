@@ -19,7 +19,7 @@ class HasGuardianPermission(permissions.BasePermission):
             if school_id:            
                 school = School.objects.get(id=school_id)
                 return (
-                    request.user.has_perm('user_management.add_guardian') and 
+                    request.user.has_perm('user_management.add_guardianship') and 
                     request.user.has_perm('school_management.view_school', school)
                 )
         
@@ -31,10 +31,10 @@ class HasGuardianPermission(permissions.BasePermission):
         
         base_permission = False
         if request.method in permissions.SAFE_METHODS:
-            base_permission = request.user.has_perm('user_management.view_guardian', obj)
+            base_permission = request.user.has_perm('user_management.view_guardianship', obj)
         elif request.method in ['PUT', 'PATCH']:
-            base_permission = request.user.has_perm('user_management.change_guardian', obj)
+            base_permission = request.user.has_perm('user_management.change_guardianship', obj)
         elif request.method == 'DELETE':
-            base_permission = request.user.has_perm('user_management.delete_guardian', obj)
+            base_permission = request.user.has_perm('user_management.delete_guardianship', obj)
         
         return base_permission

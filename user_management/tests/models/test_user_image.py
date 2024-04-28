@@ -1,7 +1,6 @@
-from urllib.parse import urlencode
-
-from django.db import IntegrityError
 import pytest
+from django.db import IntegrityError
+
 from user_management.models import UserImage
 from user_management.tests.factories import UserFactory, UserImageFactory
 
@@ -55,11 +54,11 @@ def test_unique_user_profile_image():
 @pytest.mark.models
 def test_user_image_str():
     user_image = UserImageFactory(image='http://example.com/image.jpg')
-    assert str(user_image) == user_image.image.url
+    assert str(user_image) == user_image.user.get_full_name() + ' - ' + user_image.image.url
 
 
 @pytest.mark.django_db
 @pytest.mark.models
 def test_user_profile_image_str():
     user_image = UserImageFactory(image='http://example.com/image.jpg', is_profile_photo=True)
-    assert str(user_image) == user_image.image.url + ' (Profile Photo)'
+    assert str(user_image) == user_image.user.get_full_name() + ' - ' + user_image.image.url + ' (Profile Photo)'

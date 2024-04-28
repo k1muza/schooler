@@ -1,4 +1,3 @@
-import datetime
 import factory
 from faker import Faker
 from factory import SubFactory, Sequence
@@ -6,7 +5,7 @@ from factory.django import DjangoModelFactory as Factory
 from user_management.models import Teacher
 from ..models import (
     User,
-    Guardian,
+    Guardianship,
     Student,
     UserContact,
     UserImage,
@@ -44,13 +43,13 @@ class UserImageFactory(Factory):
     is_profile_photo = False
 
 
-class GuardianFactory(Factory):
+class GuardianshipFactory(Factory):
     class Meta:
-        model = Guardian
+        model = Guardianship
         skip_postgeneration_save=True
 
     user = SubFactory(UserFactory)
-    occupation = factory.Faker('job')
+    guardian = SubFactory(UserFactory)
 
     @factory.post_generation
     def contacts(self, create, extracted, **kwargs):
@@ -61,15 +60,6 @@ class GuardianFactory(Factory):
             for contact in extracted:
                 self.contacts.add(contact)
 
-    @factory.post_generation
-    def students(self, create, extracted, **kwargs):
-        if not create:
-            return
-
-        if extracted:
-            for student in extracted:
-                self.students.add(student)
-
 
 class StudentFactory(Factory):
     class Meta:
@@ -78,7 +68,6 @@ class StudentFactory(Factory):
 
     user = SubFactory(UserFactory)
     school = SubFactory('school_management.tests.factories.SchoolFactory')
-    date_of_birth = factory.Faker('date_between_dates', date_start=datetime.date(2012, 1, 1), date_end=datetime.date(2015, 12, 31))
 
     @factory.post_generation
     def guardians(self, create, extracted, **kwargs):
@@ -96,7 +85,6 @@ class TeacherFactory(Factory):
         skip_postgeneration_save=True
 
     user = SubFactory(UserFactory)
-    qualifications = fake.text()
     school = SubFactory('school_management.tests.factories.SchoolFactory')
 
     @factory.post_generation
@@ -118,9 +106,9 @@ class TeacherFactory(Factory):
                 self.subjects.add(subject)
 
 
-class SchoolAdminFactory(Factory):
+class AdministratorFactory(Factory):
     class Meta:
-        model = 'user_management.SchoolAdmin'
+        model = 'user_management.Administrator'
 
     user = SubFactory(UserFactory)
     school = SubFactory('school_management.tests.factories.SchoolFactory')

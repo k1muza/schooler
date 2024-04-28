@@ -6,36 +6,36 @@ from guardian.shortcuts import assign_perm
 
 from school_management.models import Class
 
-from .models import Guardian, SchoolAdmin, Student, Teacher
+from .models import Guardianship, Administrator, Student, Teacher
 
 
-def assign_global_permissions_schooladmin(group: Group):
-    assign_perm('user_management.add_schooladmin', group)
+def assign_global_permissions_administrator(group: Group):
+    assign_perm('user_management.add_administrator', group)
     assign_perm('user_management.add_teacher', group)
     assign_perm('user_management.add_student', group)
-    assign_perm('user_management.add_guardian', group)
+    assign_perm('user_management.add_guardianship', group)
     assign_perm('school_management.add_school', group)
 
 
 def assign_global_permissions_teacher(group: Group):
     assign_perm('user_management.add_teacher', group)
     assign_perm('user_management.add_student', group)
-    assign_perm('user_management.add_guardian', group)
+    assign_perm('user_management.add_guardianship', group)
 
 
 def assign_global_permissions_student(group: Group):
     assign_perm('user_management.add_student', group)
-    assign_perm('user_management.add_guardian', group)
+    assign_perm('user_management.add_guardianship', group)
 
 
-@receiver(post_save, sender=SchoolAdmin)
-def assign_school_admin_perms(sender, instance: SchoolAdmin, created: bool, **kwargs):
+@receiver(post_save, sender=Administrator)
+def assign_school_admin_perms(sender, instance: Administrator, created: bool, **kwargs):
     if created:
 
-        group, new_group = Group.objects.get_or_create(name='SchoolAdmins')
+        group, new_group = Group.objects.get_or_create(name='Administrators')
 
         if new_group:
-            assign_global_permissions_schooladmin(group)
+            assign_global_permissions_administrator(group)
 
         instance.user.groups.add(group)
 
@@ -71,7 +71,7 @@ def assign_teacher_perms(sender, instance: Teacher, created: bool, **kwargs):
         assign_perm('user_management.view_teacher', instance.user, instance)
         assign_perm('school_management.view_school', instance.user, instance.school)
 
-        for admin in SchoolAdmin.objects.filter(school=instance.school):
+        for admin in Administrator.objects.filter(school=instance.school):
             assign_perm('user_management.change_teacher', admin.user, instance)
             assign_perm('user_management.delete_teacher', admin.user, instance)
             assign_perm('user_management.view_teacher', admin.user, instance)
@@ -87,29 +87,38 @@ def assign_student_perms(sender, instance: Student, created: bool, **kwargs):
             assign_global_permissions_student(group)
 
         assign_perm('user_management.view_student', instance.user, instance)
+        assign_perm('user_management.change_student', instance.user, instance)
         assign_perm('school_management.view_school', instance.user, instance.school)
 
-        for admins in SchoolAdmin.objects.filter(school=instance.school):
+        for admins in Administrator.objects.filter(school=instance.school):
             assign_perm('user_management.view_student', admins.user, instance)
             assign_perm('user_management.change_student', admins.user, instance)
             assign_perm('user_management.delete_student', admins.user, instance)
 
 
-@receiver(m2m_changed, sender=Guardian.students.through)
-def assign_guardian_perms(sender, instance: Guardian, action, reverse, model, pk_set, **kwargs):
-    if action == 'post_add':
-        students: Iterable[Student] = instance.students.filter(pk__in=pk_set)
-        for student in students:
-            assign_perm('user_management.view_student', instance.user, student)
-            assign_perm('school_management.view_school', instance.user, student.school)
-            assign_perm('user_management.view_guardian', student.user, instance)
-            
-            for teacher in student.teachers.all():
-                assign_perm('user_management.view_teacher', instance.user, teacher)
-                assign_perm('user_management.view_guardian', teacher.user, instance)
+@receiver(post_save, sender=Guardianship)
+def assign_guardian_perms(sender, instance: Guardianship, created, **kwargs):
+    # Create permissions
+    if created:
+        assign_perm('user_management.view_guardianship', instance.user, instance)
+        assign_perm('user_management.change_guardianship', instance.user, instance)
+        assign_perm('user_management.delete_guardianship', instance.user, instance)
 
-            for school_admin in SchoolAdmin.objects.filter(school=student.school):
-                assign_perm('user_management.view_guardian', school_admin.user, instance)
+        # Assign permissions for viewing students
+        for student in instance.user.studentships.all():
+            assign_perm('user_management.view_student', instance.guardian, student)
+
+        # Assign permissions for viewing teachers
+        for teacher in instance.user.teachers.all():
+            assign_perm('user_management.view_guardianship', teacher.user, instance)
+
+        # Assign permissions for viewing administrators
+        for admin in instance.user.administrators.all():
+            assign_perm('user_management.view_guardianship', admin.user, instance)
+
+        # Assign permissions for viewing schools
+        for school in instance.user.schools.all():
+            assign_perm('user_management.view_school', instance.guardian, school)
 
 
 @receiver(m2m_changed, sender=Class.students.through)
@@ -121,3 +130,6 @@ def assign_student_perms(sender, instance: Class, action, reverse, model, pk_set
             assign_perm('user_management.view_student', instance.teacher.user, student)
             assign_perm('user_management.change_student', instance.teacher.user, student)
             assign_perm('user_management.view_teacher', student.user, instance.teacher)
+
+            for guardian_user in student.user.guardians.all():
+                assign_perm('user_management.view_teacher', guardian_user, instance.teacher)

@@ -1,6 +1,7 @@
 import pytest
 from curriculum_management.tests.factories import SubjectFactory
 from django.contrib import admin
+from school_management.tests.factories import SchoolFactory
 from user_management.models import Teacher
 from user_management.tests.factories import TeacherFactory, UserFactory
 
@@ -10,9 +11,8 @@ from user_management.tests.factories import TeacherFactory, UserFactory
 def test_create_teacher():
     user = UserFactory()
     subjects = [SubjectFactory() for _ in range(3)]
-    teacher = TeacherFactory(user=user, qualifications="MSc in Physics", subjects=subjects)
+    teacher = TeacherFactory(user=user, subjects=subjects)
     assert teacher.user == user
-    assert teacher.qualifications == "MSc in Physics"
 
 
 @pytest.mark.django_db
@@ -26,11 +26,12 @@ def test_read_teacher():
 @pytest.mark.django_db
 @pytest.mark.models
 def test_update_teacher():
-    teacher = TeacherFactory.create(qualifications="MSc in Physics")
-    teacher.qualifications = "PhD in Physics"
+    teacher: Teacher = TeacherFactory()
+    school = SchoolFactory()
+    teacher.school = school
     teacher.save()
     updated_teacher = Teacher.objects.get(id=teacher.id)
-    assert updated_teacher.qualifications == "PhD in Physics"
+    assert updated_teacher.school == school
 
 
 @pytest.mark.django_db

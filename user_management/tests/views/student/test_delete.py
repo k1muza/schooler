@@ -23,8 +23,8 @@ def test_delete_student_returns_204(superuser_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_delete_student_by_school_admin_returns_204(schooladmin_client):
-    client, admin = schooladmin_client
+def test_delete_student_by_school_admin_returns_204(administrator_client):
+    client, admin = administrator_client
     student = StudentFactory(school=admin.school)
     url = reverse('student-detail', args=[student.id])
     response = client.delete(url)
@@ -35,10 +35,9 @@ def test_delete_student_by_school_admin_returns_204(schooladmin_client):
 ######################### Perm tests #########################
 
 @pytest.mark.parametrize("client_fixture, expected_status", [
-    ('schooladmin_client', status.HTTP_404_NOT_FOUND),
+    ('administrator_client', status.HTTP_404_NOT_FOUND),
     ('teacher_client', status.HTTP_404_NOT_FOUND),
     ('student_client', status.HTTP_404_NOT_FOUND),
-    ('guardian_client', status.HTTP_404_NOT_FOUND),
     ('user_client', status.HTTP_404_NOT_FOUND),
 ])
 @pytest.mark.django_db

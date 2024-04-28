@@ -3,8 +3,9 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 from school_management.tests.factories import ClassFactory
+from user_management.models import Guardianship
 from user_management.serializers import StudentSerializer
-from user_management.tests.factories import StudentFactory
+from user_management.tests.factories import GuardianshipFactory, StudentFactory, UserFactory
 
 ######################### Happy path tests #########################
 
@@ -25,8 +26,8 @@ def test_get_list_by_teacher_200(teacher_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_list_by_school_admin_200(schooladmin_client):
-    client, admin = schooladmin_client
+def test_get_list_by_school_admin_200(administrator_client):
+    client, admin = administrator_client
     StudentFactory.create_batch(2)
     students = StudentFactory.create_batch(3, school=admin.school)
     url = reverse('student-list')
@@ -50,14 +51,17 @@ def test_get_list_by_self(student_client):
 
 @pytest.mark.django_db
 @pytest.mark.views
-def test_get_list_by_guardian_200(guardian_client):
-    client, guardian = guardian_client
-    StudentFactory.create_batch(2)
+def test_get_list_by_guardian_200(client):
+    user = UserFactory()
+
+    for _ in range(5):
+        GuardianshipFactory(user=StudentFactory().user, guardian=user)
+
+    client.force_login(user)
     url = reverse('student-list')
     response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
-    assert response.data == StudentSerializer(guardian.students.all(), many=True).data
-    assert len(response.data) == guardian.students.count()
+    assert len(response.data) == 5
 
 
 @pytest.mark.django_db

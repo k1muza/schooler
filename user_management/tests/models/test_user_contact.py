@@ -60,7 +60,7 @@ def test_user_contact_str():
 @pytest.mark.models
 def test_user_contact_str():
     user_contact = UserContactFactory()
-    assert str(user_contact) == 'phone - ' + user_contact.contact
+    assert str(user_contact) == user_contact.user.get_full_name() + ' - phone - ' + user_contact.contact
 
 
 @pytest.mark.models

@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from curriculum_management.serializers import SubjectSerializer
 from school_management.serializers import ClassSerializer, SchoolSerializer
-from user_management.models import Guardian, Student, Teacher, User
+from user_management.models import Guardianship, Student, Teacher, User
 from user_management.serializers.user import UserSerializer
 
 
@@ -14,7 +14,7 @@ class GuardianSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(write_only=True, required=False)
 
     class Meta:
-        model = Guardian
+        model = Guardianship
         fields = "__all__"
 
     def __init__(self, *args, **kwargs):
@@ -28,7 +28,7 @@ class GuardianSerializer(serializers.ModelSerializer):
     def validate_user_id(self, value):
         if self.instance and self.instance.user_id == value:
             return value  # Allow unchanged user_id on updates
-        if Guardian.objects.filter(user_id=value).exists():
+        if Guardianship.objects.filter(user_id=value).exists():
             raise serializers.ValidationError("Guardian with specified user_id already exists.")
         return value
 
@@ -39,7 +39,7 @@ class GuardianSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(self.errors)
 
         # Generalized foreign key validation
-        for field in Guardian._meta.fields:
+        for field in Guardianship._meta.fields:
             if isinstance(field, ForeignKey):
                 fk_field_name = f"{field.name}_id"  # Construct the name of the FK field in the serializer
                 fk_id = self.initial_data.get(fk_field_name, None)
@@ -80,7 +80,7 @@ class GuardianSerializer(serializers.ModelSerializer):
         else:
             user = None
 
-        guardian = Guardian.objects.create(user=user, **validated_data)
+        guardian = Guardianship.objects.create(user=user, **validated_data)
         return guardian
     
     @transaction.atomic
