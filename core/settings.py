@@ -22,6 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-rf_*w$j^zxz7(52ki5c(1b+*$+etzx^^g9l=kf4#a*@_2en_16'
+SECRET_KEY = os.getenv('SECRET_KEY', SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -91,12 +92,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'student_management',
-        'USER': 'user',
-        'PASSWORD': 'password',
-        'HOST': 'db',
-        'PORT': '5432',
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME', 'student_management'),
+        'USER': os.getenv('DB_USER', 'user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'password'),
+        'HOST': os.getenv('DB_HOST', 'db'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -149,8 +150,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://redis:6379/1',
+        'BACKEND': os.getenv('CACHE_BACKEND', 'django_redis.cache.RedisCache'),
+        'LOCATION': os.getenv('CACHE_LOCATION', 'redis://redis:6379/1'),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
