@@ -23,7 +23,7 @@ jobs:
         run: docker-compose run test
 
       - name: Upload test coverage result
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report
           path: ./htmlcov
