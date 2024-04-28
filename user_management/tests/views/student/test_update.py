@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from django.urls import reverse
 from django.utils import timezone
-from school_management.tests.factories import ClassFactory
+from school_management.tests.factories import ClassFactory, SchoolFactory
 from user_management.models import Student
 from user_management.tests.factories import StudentFactory
 
@@ -95,3 +95,25 @@ def test_student_update_by_class_teacher_returns_200(teacher_client):
 # def test_update_with_invalid_foreign_key_returns_400(teacher_client):
 #     pass
 
+
+@pytest.mark.views
+@pytest.mark.django_db
+def test_student_update_immutable_school_id(superuser_client):
+    client, _ = superuser_client
+    student = StudentFactory()
+
+    original_school = student.school
+    school = SchoolFactory()
+
+    url = reverse("student-detail", args=[student.id])
+    updated_data = {
+        "id": student.id,
+        "school_id": school.id,
+        "user_id": student.user.id,
+        "date_of_birth": (timezone.now() - timedelta(weeks=52*7)).strftime('%Y-%m-%d'),
+        "student_number": "123456",
+    }
+    response = client.put(url, updated_data, format="json")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    student.refresh_from_db()
+    assert student.school == original_school

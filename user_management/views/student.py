@@ -5,10 +5,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from school_management.models import School
-from user_management.permissions import HasStudentPermission
+from user_management.permissions.student import HasStudentPermission
+from user_management.serializers.student import StudentSerializer
 
 from ..models import Student, User
-from ..serializers import StudentSerializer
 
 
 class StudentViewSet(viewsets.ModelViewSet):

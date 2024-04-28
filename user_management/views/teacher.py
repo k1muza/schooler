@@ -7,10 +7,10 @@ from rest_framework.response import Response
 from guardian.shortcuts import get_objects_for_user
 
 from school_management.models import School
-from user_management.permissions import HasTeacherPermission
+from user_management.permissions.teacher import HasTeacherPermission
+from user_management.serializers.teacher import TeacherSerializer
 
 from ..models import Teacher, User
-from ..serializers import TeacherSerializer
 
 
 class TeacherViewSet(viewsets.ModelViewSet):
@@ -43,9 +43,6 @@ class TeacherViewSet(viewsets.ModelViewSet):
 
         elif not School.objects.filter(id=request.data.get('school_id')).exists():
             return Response(f'School with id {request.data.get("school_id")} does not exist.', status=status.HTTP_404_NOT_FOUND)
-
-        elif request.user.school_admin.school_id != request.data.get('school_id'):
-            return Response('You are not authorized to create a teacher for this school.', status=status.HTTP_403_FORBIDDEN)
 
         serializer: TeacherSerializer = self.get_serializer(data=request.data)
         try:
