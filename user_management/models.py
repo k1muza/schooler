@@ -39,11 +39,6 @@ class User(AbstractUser, TimeStampedModel, VersionedModel):
         return Teacher.objects.filter(classes__students__user=self).distinct()
     
     @property
-    def students(self) -> QuerySet["Student"]:
-        """ Students taught by the user."""
-        return Student.objects.filter(classes__teacher__user=self).distinct()
-    
-    @property
     def administrators(self) -> QuerySet["Administrator"]:
         """ Administrators of the user's school."""
         return Administrator.objects.filter(school__in=self.schools).distinct()
@@ -107,11 +102,6 @@ class Student(TimeStampedModel, VersionedModel):
 
     def __str__(self):
         return self.user.get_full_name()
-
-    @property
-    def teachers(self) -> QuerySet[Teacher]:
-        """ Return all teachers of the student."""
-        return Teacher.objects.filter(classes__students=self).distinct()
 
 
 @reversion.register()
