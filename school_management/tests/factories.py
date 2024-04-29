@@ -1,30 +1,39 @@
 from factory import SubFactory
 from factory.django import DjangoModelFactory as Factory
-from faker import Faker
-from ..models import School, Level, Class
+from factory.faker import Faker
+from django.contrib.sites.models import Site
 
-fake = Faker()
+from school_management.models import Class, Level, School
+
+
+class SiteFactory(Factory):
+    class Meta:
+        model = Site
+
+    name = Faker('company')
+    domain = Faker('domain_name')
 
 
 class SchoolFactory(Factory):
     class Meta:
         model = School
 
-    name = fake.company()
+    name = Faker('company')
+    site = SubFactory(SiteFactory)
 
 
 class LevelFactory(Factory):
     class Meta:
         model = Level
 
-    name = fake.word()
+    name = Faker('word')
 
 
 class ClassFactory(Factory):
     class Meta:
         model = Class
 
-    name = fake.word()
+    name = Faker('word')
     level = SubFactory(LevelFactory)
     school = SubFactory(SchoolFactory)
     teacher = SubFactory('user_management.tests.factories.TeacherFactory')

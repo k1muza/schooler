@@ -1,8 +1,11 @@
+from django.contrib.sites.models import Site
 from django.db import models
 
 from core.models import TimeStampedModel
 
+
 class School(TimeStampedModel):
+    site = models.OneToOneField(Site, on_delete=models.CASCADE, related_name='school')
     name = models.CharField(max_length=255)
 
     def __str__(self):
